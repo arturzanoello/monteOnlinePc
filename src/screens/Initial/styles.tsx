@@ -1,12 +1,11 @@
 import { StyleSheet } from "react-native";
-import { colors } from "../../constants/Colors";
+
 
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'flex-start',
+        justifyContent: 'center',
         alignItems: 'center',
-        paddingTop: 80
     },
     textMain: {
         fontWeight: 'bold',
@@ -18,9 +17,10 @@ export const styles = StyleSheet.create({
     },
     image: {
         resizeMode: 'contain',
-        width: 350,
-        height: 300,
-        marginTop: 55,
-        marginBottom: 85
+        width: '100%',
+        maxWidth: 350,
+        height: undefined,
+        aspectRatio: 1,
+        marginVertical: 20,
     },
 })

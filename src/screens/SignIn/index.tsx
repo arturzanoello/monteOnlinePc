@@ -1,4 +1,4 @@
-import { View, Text, Image, Pressable } from "react-native";
+import { View, Text, Image, Pressable, ScrollView, SafeAreaView } from "react-native";
 import { styles } from "./styles";
 
 import pc from '../../../assets/pc.png'
@@ -45,38 +45,43 @@ export function SignIn({ navigation }: any) {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.textMain}>Monte Online PC+</Text>
+        <SafeAreaView style={{ flex: 1 }}>
+            <ScrollView
+                contentContainerStyle={styles.container}
+                showsVerticalScrollIndicator={false}
+            >
+                <Text style={styles.textMain}>Monte Online PC+</Text>
 
-            <View style={{ marginTop: 30 }}>
-                <Text style={styles.textContent}>Sua configuração dos sonhos</Text>
-                <Text style={styles.textContent}>a algumas escolhas de você.</Text>
-            </View>
+                <View style={{ marginTop: 30 }}>
+                    <Text style={styles.textContent}>Sua configuração dos sonhos</Text>
+                    <Text style={styles.textContent}>a algumas escolhas de você.</Text>
+                </View>
 
-            <Image source={pc} style={styles.image} />
+                <Image source={pc} style={styles.image} />
 
-            <Input
-                label="E-mail:"
-                value={email}
-                onChangeText={setEmail}
-                error={errors.email}
-                placeholder='Digite seu e-mail'
-            />
+                <Input
+                    label="E-mail:"
+                    value={email}
+                    onChangeText={setEmail}
+                    error={errors.email}
+                    placeholder='Digite seu e-mail'
+                />
 
-            <Input
-                label="Senha:"
-                value={password}
-                onChangeText={setPassword}
-                error={errors.password}
-                placeholder="Digite sua senha"
-            />
+                <Input
+                    label="Senha:"
+                    value={password}
+                    onChangeText={setPassword}
+                    error={errors.password}
+                    placeholder="Digite sua senha"
+                />
 
-            <View style={{ marginTop: 20 }} />
+                <View style={{ marginTop: 20 }} />
 
-            <Button label='Entrar' onPress={handleSubmit} />
+                <Button label='Entrar' onPress={handleSubmit} />
 
-            <Text style={styles.textRegister} onPress={() => navigation.goBack()}>Voltar</Text>
+                <Text style={styles.textRegister} onPress={() => navigation.goBack()}>Voltar</Text>
 
-        </View>
+            </ScrollView>
+        </SafeAreaView>
     )
 }

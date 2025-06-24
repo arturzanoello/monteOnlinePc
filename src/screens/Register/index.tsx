@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { View, Text, ScrollView, SafeAreaView } from "react-native";
 import { styles } from "./styles";
 import { Input } from "../../components/Input";
 import { useState } from "react";
@@ -17,53 +17,60 @@ export function Register({ navigation }: any) {
     });
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={{ flex: 1 }}>
+            <ScrollView
+                contentContainerStyle={styles.container}
+                showsVerticalScrollIndicator={false}
+            >
 
-            <Text style={styles.textMain}>Monte Online PC+</Text>
+                <Text style={styles.textMain}>Monte Online PC+</Text>
 
-            <Text style={styles.textContent}>Cadastro</Text>
+                <Text style={styles.textContent}>Cadastro</Text>
 
 
-            <Input
-                label="E-mail:"
-                value={email}
-                onChangeText={setEmail}
-                error={errors.email}
-                placeholder='Digite seu e-mail'
-            />
+                <Input
+                    label="E-mail:"
+                    value={email}
+                    onChangeText={setEmail}
+                    error={errors.email}
+                    placeholder='Digite seu e-mail'
+                />
 
-            <Input
-                label="Nome Completo:"
-                value={name}
-                onChangeText={setName}
-                error={errors.name}
-                placeholder='Digite seu nome completo'
-            />
+                <Input
+                    label="Nome Completo:"
+                    value={name}
+                    onChangeText={setName}
+                    error={errors.name}
+                    placeholder='Digite seu nome completo'
+                />
 
-            <Input
-                label="Senha:"
-                value={password}
-                onChangeText={setPassword}
-                error={errors.password}
-                placeholder='Digite sua senha'
-            />
+                <Input
+                    label="Senha:"
+                    value={password}
+                    onChangeText={setPassword}
+                    error={errors.password}
+                    placeholder='Digite sua senha'
+                />
 
-            <Input
-                label="Confirme sua senha:"
-                value={checkPassword}
-                onChangeText={setCheckPassword}
-                error={errors.checkPassword}
-                placeholder='Confirme sua senha'
-            />
+                <Input
+                    label="Confirme sua senha:"
+                    value={checkPassword}
+                    onChangeText={setCheckPassword}
+                    error={errors.checkPassword}
+                    placeholder='Confirme sua senha'
+                />
 
-            <View style={{ marginTop: 50 }} />
+                <View style={{ marginTop: 50 }} />
 
-            <Button
-                label="Cadastrar"
-                onPress={() => navigation.navigate('')}
-            />
+                <Button
+                    label="Cadastrar"
+                    onPress={() => navigation.navigate('Home')}
 
-            <Text style={styles.textRegister} onPress={() => navigation.goBack()}>Voltar</Text>
-        </View>
+                />
+
+                <Text style={styles.textRegister} onPress={() => navigation.goBack()}>Voltar</Text>
+            </ScrollView>
+        </SafeAreaView>
+
     )
 }

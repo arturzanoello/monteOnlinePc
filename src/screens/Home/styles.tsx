@@ -17,22 +17,11 @@ export const styles = StyleSheet.create({
     },
     image: {
         resizeMode: 'contain',
-        width: 350,
-        height: 380,
-        marginTop: 35,
-        marginBottom: 35
-    },
-    button: {
-        width: '80%',
-        backgroundColor: colors.blue,
-        padding: 10,
-        borderRadius: 10
-    },
-    buttonText: {
-        color: '#FFF',
-        fontWeight: '700',
-        fontSize: 19,
-        textAlign: 'center'
+        width: '100%',
+        maxWidth: 350,
+        height: undefined,
+        aspectRatio: 1,
+        marginVertical: 20,
     },
     textRegister: {
         color: colors.blue,

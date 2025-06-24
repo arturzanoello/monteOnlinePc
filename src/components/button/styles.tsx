@@ -3,13 +3,15 @@ import { colors } from "../../constants/Colors";
 
 export const styles = StyleSheet.create({
     container: {
-        width: '85%',
+        width: '100%',
+        maxWidth: 350,
+        alignSelf: 'center',
         marginTop: 15
     },
     button: {
         backgroundColor: colors.blue,
         padding: 10,
-        borderRadius: 15
+        borderRadius: 15,
     },
     buttonText: {
         color: '#FFF',

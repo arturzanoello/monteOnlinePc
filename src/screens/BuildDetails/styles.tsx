@@ -11,7 +11,6 @@ export const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 40,
-        width: '90%'
     },
     textMain: {
         fontWeight: 'bold',
@@ -24,7 +23,6 @@ export const styles = StyleSheet.create({
         padding: 15,
         backgroundColor: '#cacaca',
         borderRadius: 15,
-        width: '90%'
     },
     textContent: {
         fontSize: 22,

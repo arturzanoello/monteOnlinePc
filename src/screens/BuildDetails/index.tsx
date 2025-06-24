@@ -163,74 +163,76 @@ export function BuildDetails({ navigation, route }: any) {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Ionicons
-                    name="arrow-back-outline"
-                    size={32}
-                    color="black"
-                    onPress={() => navigation.goBack()}
-                />
-                <Feather name="monitor" size={32} color="black" />
-            </View>
-            <Text style={styles.textMain}>Editar Montagem</Text>
-
-            <View style={styles.content}>
-                <Text style={styles.textContent}>Montagem {buildNumber}</Text>
-
-
-                {Object.entries(build.components).map(([type, component]) => {
-                    if (!component) return null;
-
-                    return (
-                        <View key={type} style={styles.itemContent}>
-                            <Text style={styles.textItem}>
-                                {component.name}
-                            </Text>
-
-                            <View style={styles.quantityContainer}>
-                                <Pressable
-                                    onPress={() => updateQuantity(type, (component.quantity || 1) - 1)}
-                                    disabled={(component.quantity || 1) <= 1}
-                                >
-                                    <AntDesign
-                                        name="minuscircleo"
-                                        size={20}
-                                        color={(component.quantity || 1) <= 1 ? "#ccc" : "black"}
-                                    />
-                                </Pressable>
-                                <Text style={styles.quantityText}>{component.quantity || 1}</Text>
-                                <Pressable
-                                    onPress={() => updateQuantity(type, (component.quantity || 1) + 1)}
-                                    disabled={(component.quantity || 1) >= 9}
-                                >
-                                    <AntDesign
-                                        name="pluscircleo"
-                                        size={20}
-                                        color={(component.quantity || 1) >= 9 ? "#ccc" : "black"}
-                                    />
-                                </Pressable>
-                            </View>
-                        </View>
-                    );
-                })}
-
-
-                <View style={styles.totalContainer}>
-                    <Text style={styles.totalText}>
-                        Total: {formatPrice(totalPrice)}
-                    </Text>
-                </View>
-
-                <View style={styles.buttonContainer}>
-                    <Button
-                        label="Salvar alterações"
-                        onPress={handleSave}
+            <ScrollView style={{ width: '90%' }}>
+                <View style={styles.header}>
+                    <Ionicons
+                        name="arrow-back-outline"
+                        size={32}
+                        color="black"
+                        onPress={() => navigation.goBack()}
                     />
+                    <Feather name="monitor" size={32} color="black" />
                 </View>
-            </View>
-            <Text style={styles.textDelete} onPress={handleDelete}>
-                Deletar Montagem
-            </Text>
+                <Text style={styles.textMain}>Editar Montagem</Text>
+
+                <View style={styles.content}>
+                    <Text style={styles.textContent}>Montagem {buildNumber}</Text>
+
+
+                    {Object.entries(build.components).map(([type, component]) => {
+                        if (!component) return null;
+
+                        return (
+                            <View key={type} style={styles.itemContent}>
+                                <Text style={styles.textItem}>
+                                    {component.name}
+                                </Text>
+
+                                <View style={styles.quantityContainer}>
+                                    <Pressable
+                                        onPress={() => updateQuantity(type, (component.quantity || 1) - 1)}
+                                        disabled={(component.quantity || 1) <= 1}
+                                    >
+                                        <AntDesign
+                                            name="minuscircleo"
+                                            size={20}
+                                            color={(component.quantity || 1) <= 1 ? "#ccc" : "black"}
+                                        />
+                                    </Pressable>
+                                    <Text style={styles.quantityText}>{component.quantity || 1}</Text>
+                                    <Pressable
+                                        onPress={() => updateQuantity(type, (component.quantity || 1) + 1)}
+                                        disabled={(component.quantity || 1) >= 9}
+                                    >
+                                        <AntDesign
+                                            name="pluscircleo"
+                                            size={20}
+                                            color={(component.quantity || 1) >= 9 ? "#ccc" : "black"}
+                                        />
+                                    </Pressable>
+                                </View>
+                            </View>
+                        );
+                    })}
+
+
+                    <View style={styles.totalContainer}>
+                        <Text style={styles.totalText}>
+                            Total: {formatPrice(totalPrice)}
+                        </Text>
+                    </View>
+
+                    <View style={styles.buttonContainer}>
+                        <Button
+                            label="Salvar alterações"
+                            onPress={handleSave}
+                        />
+                    </View>
+                </View>
+                <Text style={styles.textDelete} onPress={handleDelete}>
+                    Deletar Montagem
+                </Text>
+            </ScrollView>
         </View>
     );
 }
