@@ -87,6 +87,7 @@ export const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 20,
         color: 'red',
-        fontWeight: '500'
+        fontWeight: '500',
+        marginBottom: 40
     }
 })

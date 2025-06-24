@@ -32,6 +32,7 @@ export function Initial({ navigation }: any) {
                     onPress={() => navigation.navigate('ChooseCpu')}
 
                 />
+                <View style={{ marginBottom: 40 }}></View>
             </ScrollView>
         </SafeAreaView>
     )

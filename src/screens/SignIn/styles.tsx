@@ -3,9 +3,10 @@ import { colors } from "../../constants/Colors";
 
 export const styles = StyleSheet.create({
     container: {
-        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        padding: 25,
+        minHeight: '100%'
     },
     textMain: {
         fontWeight: 'bold',
@@ -39,6 +40,7 @@ export const styles = StyleSheet.create({
         color: colors.blue,
         fontWeight: '700',
         fontSize: 19,
-        marginTop: 20
+        marginTop: 20,
+        marginBottom: 40
     }
 })
