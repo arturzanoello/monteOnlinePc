@@ -2,7 +2,7 @@
   "expo": {
     "name": "monteOnlinePc",
     "slug": "monteOnlinePc",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -22,7 +22,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.arturzanoello.monteOnlinePc",
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -31,6 +31,9 @@
       "eas": {
         "projectId": "16b3a63b-00b0-402e-bb49-21923905ff69"
       }
-    }
+    },
+    "plugins": [
+      "expo-asset"
+    ]
   }
 }

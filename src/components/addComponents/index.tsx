@@ -23,7 +23,10 @@ export function AddComponents({ product, price, description, shop, onPress }: Ad
             <Button
                 label="Selecionar"
                 onPress={onPress}
-            />
+                style={{ marginTop: 10 }}
+            >
+                Selecionar
+            </Button>
 
             <Text style={styles.shop}>LOJA: {shop.toUpperCase()}</Text>
         </View>

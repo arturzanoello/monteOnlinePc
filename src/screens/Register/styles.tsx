@@ -5,23 +5,29 @@ export const styles = StyleSheet.create({
     container: {
         justifyContent: 'center',
         alignItems: 'center',
-        minHeight: '100%',
-        padding: 20
+        padding: 20,
+        minHeight: '100%'
     },
     textMain: {
         fontWeight: 'bold',
         fontSize: 35,
-        marginBottom: 30,
     },
     textContent: {
         fontWeight: '500',
         fontSize: 20,
-        marginBottom: 40
+        textAlign: 'center'
+    },
+    image: {
+        resizeMode: 'contain',
+        width: 200,
+        height: 200,
+        marginTop: 25,
+        marginBottom: 15
     },
     textRegister: {
         color: colors.blue,
         fontWeight: '700',
-        fontSize: 19,
+        fontSize: 16,
         marginTop: 20,
         marginBottom: 40
     }

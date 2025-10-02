@@ -20,7 +20,9 @@ export function AddBuild({ id, price, onPress, onDelete }: AddBuildProps) {
             <Button
                 label="Editar"
                 onPress={onPress}
-            />
+            >
+                Editar
+            </Button>
 
             <Pressable style={{ position: 'absolute', alignSelf: 'flex-end', padding: 20 }} onPress={onDelete}>
                 <Ionicons name="trash-outline" size={26} color="black" />

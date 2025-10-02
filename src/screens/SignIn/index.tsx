@@ -1,87 +1,107 @@
-import { View, Text, Image, Pressable, ScrollView, SafeAreaView } from "react-native";
+import { View, Text, Image, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from "react-native";
 import { styles } from "./styles";
+import { Formik } from 'formik';
+import * as Yup from 'yup';
 
 import pc from '../../../assets/pc.png'
-import { Input } from "../../components/Input";
-import { useState } from "react";
+import { Input, PasswordInput } from "../../components/Input";
 import { Button } from "../../components/button";
 
+const SignInSchema = Yup.object().shape({
+    email: Yup.string()
+        .email('E-mail inválido')
+        .required('E-mail é obrigatório'),
+    password: Yup.string()
+        .min(6, 'Senha deve ter pelo menos 6 caracteres')
+        .required('Senha é obrigatória'),
+});
+
 export function SignIn({ navigation }: any) {
-    const [email, setEmail] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
-    const [errors, setErrors] = useState({
-        email: '',
-        password: '',
-    })
-
-    const validateForm = () => {
-        let isValid = true;
-        const newErrors = { email: '', password: '' };
-
-        if (!email.trim()) {
-            newErrors.email = 'E-mail é obrigatório';
-            isValid = false;
-        } else if (!/\S+@\S+\.\S+/.test(email)) {
-            newErrors.email = 'E-mail inválido';
-            isValid = false;
-        }
-
-        if (!password.trim()) {
-            newErrors.password = 'Senha é obrigatória';
-            isValid = false;
-        } else if (password.length < 6) {
-            newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
-            isValid = false;
-        }
-
-        setErrors(newErrors);
-        return isValid;
-    };
-
-    const handleSubmit = () => {
-        if (validateForm()) {
-            navigation.navigate('Initial')
-        }
+    const handleSubmit = (values: { email: string; password: string }) => {
+        navigation.navigate('Initial');
     };
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <ScrollView
-                contentContainerStyle={styles.container}
-                showsVerticalScrollIndicator={false}
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-                <Text style={styles.textMain}>Monte Online PC+</Text>
+                <ScrollView
+                    contentContainerStyle={styles.container}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    contentInsetAdjustmentBehavior="automatic"
+                >
+                    <Text style={styles.textMain}>Monte Online PC+</Text>
 
-                <View style={{ marginTop: 30 }}>
-                    <Text style={styles.textContent}>Sua configuração dos sonhos</Text>
-                    <Text style={styles.textContent}>a algumas escolhas de você.</Text>
-                </View>
+                    <View style={{ marginTop: 30 }}>
+                        <Text style={styles.textContent}>Sua configuração dos sonhos</Text>
+                        <Text style={styles.textContent}>a algumas escolhas de você.</Text>
+                    </View>
 
-                <Image source={pc} style={styles.image} />
+                    <Image source={pc} style={styles.image} />
 
-                <Input
-                    label="E-mail:"
-                    value={email}
-                    onChangeText={setEmail}
-                    error={errors.email}
-                    placeholder='Digite seu e-mail'
-                />
+                    <Formik
+                        initialValues={{ email: '', password: '' }}
+                        validationSchema={SignInSchema}
+                        onSubmit={handleSubmit}
+                        validateOnChange={false}
+                        validateOnBlur={false}
+                    >
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldError }) => (
+                            <>
+                                <View style={{ width: '90%', marginTop: 20 }}>
+                                    <Input
+                                        label="Digite seu email"
+                                        value={values.email}
+                                        onChangeText={(text) => {
+                                            handleChange('email')(text);
+                                            if (errors.email) {
+                                                setFieldError('email', '');
+                                            }
+                                        }}
+                                        onBlur={handleBlur('email')}
+                                        error={!!errors.email}
+                                    />
+                                    {errors.email && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {errors.email}
+                                        </Text>
+                                    )}
 
-                <Input
-                    label="Senha:"
-                    value={password}
-                    onChangeText={setPassword}
-                    error={errors.password}
-                    placeholder="Digite sua senha"
-                />
+                                    <PasswordInput
+                                        label="Digite sua senha"
+                                        value={values.password}
+                                        onChangeText={(text) => {
+                                            handleChange('password')(text);
+                                            if (errors.password) {
+                                                setFieldError('password', '');
+                                            }
+                                        }}
+                                        onBlur={handleBlur('password')}
+                                        error={!!errors.password}
+                                    />
+                                    {errors.password && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {errors.password}
+                                        </Text>
+                                    )}
 
-                <View style={{ marginTop: 20 }} />
+                                    <View style={{ marginTop: 20 }} />
 
-                <Button label='Entrar' onPress={handleSubmit} />
+                                </View>
+                                <Button label='Entrar' onPress={handleSubmit} size="large">
+                                    {null}
+                                </Button>
+                            </>
+                        )}
+                    </Formik>
 
-                <Text style={styles.textRegister} onPress={() => navigation.goBack()}>Voltar</Text>
+                    <Text style={styles.textRegister} onPress={() => navigation.goBack()}>Voltar</Text>
 
-            </ScrollView>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     )
 }

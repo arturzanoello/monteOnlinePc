@@ -1,25 +1,53 @@
-import { View, Text, TextInput } from "react-native";
-import { styles } from "./styles";
+import { useState } from "react";
+import { TextInput, TextInputProps } from "react-native-paper";
+import { Colors } from "../../styles/colors";
 
-interface InputProps {
-    label: string;
-    value: string;
-    onChangeText: (text: string) => void;
-    error: string;
-    placeholder: string;
+interface InputProps extends TextInputProps {
 }
 
-export function Input({ label, value, onChangeText, error, placeholder }: InputProps) {
+interface PasswordInputProps extends Omit<TextInputProps, 'secureTextEntry' | 'right'> {
+}
+
+export function Input({ label, value, onChangeText, style, right, ...rest }: InputProps) {
     return (
-        <View style={{ width: '90%', marginTop: 20 }}>
-            <Text style={styles.label}>{label}</Text>
-            <TextInput
-                value={value}
-                onChangeText={onChangeText}
-                placeholder={placeholder}
-                style={styles.textInput}
-            />
-            {error && <Text style={styles.error}>{error}</Text>}
-        </View>
+        <TextInput
+            label={label}
+            value={value}
+            onChangeText={onChangeText}
+            mode="outlined"
+            activeOutlineColor={Colors.black}
+            style={[{ height: 45, marginTop: 3 }, style]}
+            {...rest}
+        />
     )
 }
+
+export function PasswordInput({ label, value, onChangeText, style, ...rest }: PasswordInputProps) {
+    const [showPassword, setShowPassword] = useState(false);
+
+    const toggleShowPassword = () => {
+        setShowPassword(!showPassword);
+    };
+
+    return (
+        <TextInput
+            label={label}
+            value={value}
+            onChangeText={onChangeText}
+            mode="outlined"
+            activeOutlineColor={Colors.black}
+            style={[{ height: 45, marginTop: 3 }, style]}
+            secureTextEntry={!showPassword}
+            right={
+                <TextInput.Icon
+                    icon={showPassword ? "eye" : "eye-off"}
+                    onPressIn={toggleShowPassword}
+                    forceTextInputFocus={false}
+                />
+            }
+            {...rest}
+        />
+    )
+}
+
+export const InputIcon = TextInput.Icon;

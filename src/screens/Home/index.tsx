@@ -19,7 +19,7 @@ export function Home({ navigation }: any) {
 
                 <Image source={pc} style={styles.image} />
 
-                <Button label="Entrar" onPress={() => navigation.navigate('SignIn')} />
+                <Button label="Entrar" onPress={() => navigation.navigate('SignIn')}>Entrar</Button>
 
                 <Text style={styles.textRegister} onPress={() => navigation.navigate('Register')}>Cadastre-se</Text>
 

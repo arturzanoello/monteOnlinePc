@@ -22,16 +22,18 @@ export function Initial({ navigation }: any) {
 
                 <Button
                     label="Ver montagens"
-
                     onPress={() => navigation.navigate('Build')}
-
-                />
+                >
+                    Ver montagens
+                </Button>
 
                 <Button
                     label="Montar Computador"
+                    style={{ marginTop: 10 }}
                     onPress={() => navigation.navigate('ChooseCpu')}
-
-                />
+                >
+                    Montar Computador
+                </Button>
                 <View style={{ marginBottom: 40 }}></View>
             </ScrollView>
         </SafeAreaView>

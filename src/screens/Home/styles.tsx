@@ -27,7 +27,7 @@ export const styles = StyleSheet.create({
     textRegister: {
         color: colors.blue,
         fontWeight: '700',
-        fontSize: 19,
+        fontSize: 16,
         marginTop: 20,
         marginBottom: 40
     }

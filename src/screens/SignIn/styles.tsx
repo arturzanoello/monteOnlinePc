@@ -5,7 +5,7 @@ export const styles = StyleSheet.create({
     container: {
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 25,
+        padding: 20,
         minHeight: '100%'
     },
     textMain: {
@@ -39,7 +39,7 @@ export const styles = StyleSheet.create({
     textRegister: {
         color: colors.blue,
         fontWeight: '700',
-        fontSize: 19,
+        fontSize: 16,
         marginTop: 20,
         marginBottom: 40
     }
