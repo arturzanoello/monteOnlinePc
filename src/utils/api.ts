@@ -16,7 +16,6 @@ export async function getTodos(): Promise<Todo[]> {
 }
 
 /**
- * Create a new todo
  */
 export async function createTodo(payload: Omit<Todo, 'id'>): Promise<Todo | null> {
   const { data, error } = await supabase.from('todos').insert(payload).select().single()
