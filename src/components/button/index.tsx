@@ -1,13 +1,16 @@
+import React from 'react';
 import { Button as PaperButton, ButtonProps as PaperButtonProps } from "react-native-paper";
 import { ViewStyle } from "react-native";
 
 type ButtonSize = 'small' | 'medium' | 'large';
 
-interface ButtonProps extends PaperButtonProps {
+type ButtonProps = Omit<PaperButtonProps, 'children'> & {
     icon?: string;
     label: string;
-    onPress: () => void;
+    // allow flexible handler signatures (Touchable/Formik handlers) — we forward this to the underlying button
+    onPress?: (...args: any[]) => void;
     size?: ButtonSize;
+    children?: React.ReactNode;
 }
 
 export function Button({ icon, label, onPress, size = 'large', style, labelStyle, ...rest }: ButtonProps) {
@@ -53,7 +56,8 @@ export function Button({ icon, label, onPress, size = 'large', style, labelStyle
             style={[getButtonStyle(size), style]}
             labelStyle={[getLabelStyle(size), labelStyle]}
         >
-            {label}
+            {/** Prefer explicit children if provided, otherwise render label prop */}
+            { (rest as any).children ?? label }
         </PaperButton>
     )
 }
