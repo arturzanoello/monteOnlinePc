@@ -135,7 +135,7 @@ export function Register({ navigation }: any) {
 
                                 <Button
                                     label="Cadastrar"
-                                    onPress={handleSubmit}
+                                    onPress={() => handleSubmit()}
                                     size="large"
                                 >
                                     Cadastrar

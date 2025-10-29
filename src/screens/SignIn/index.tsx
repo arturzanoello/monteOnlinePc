@@ -91,7 +91,7 @@ export function SignIn({ navigation }: any) {
                                     <View style={{ marginTop: 20 }} />
 
                                 </View>
-                                <Button label='Entrar' onPress={handleSubmit} size="large">
+                                <Button label='Entrar' onPress={() => handleSubmit()} size="large">
                                     {null}
                                 </Button>
                             </>
