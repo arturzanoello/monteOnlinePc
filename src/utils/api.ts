@@ -40,3 +40,26 @@ export async function deleteTodo(id: number): Promise<void> {
   const { error } = await supabase.from('todos').delete().eq('id', id)
   if (error) throw error
 }
+
+export type NewUserPayload = {
+  login: string
+  senha: string
+}
+
+/**
+ * Register a new user in the `usuario` table.
+ * Note: this function currently stores the password as provided by the caller.
+ * For production, hash the password before inserting or use Supabase Auth.
+ */
+export async function registerUser(payload: NewUserPayload) {
+  const { login, senha } = payload
+
+  const { data, error } = await supabase
+    .from('usuario')
+    .insert({ login, senha })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data ?? null
+}
