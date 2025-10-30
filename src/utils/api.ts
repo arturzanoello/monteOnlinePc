@@ -63,3 +63,31 @@ export async function registerUser(payload: NewUserPayload) {
   if (error) throw error
   return data ?? null
 }
+
+export type User = {
+  id: string
+  login: string
+  senha?: string
+  data_criacao?: string
+}
+
+/**
+ * Authenticate a user against the `usuario` table.
+ * NOTE: This checks the plaintext password because `usuario.senha` currently stores plain text.
+ * For production, migrate to Supabase Auth or hash passwords server-side.
+ */
+export async function loginUser(login: string, senha: string): Promise<User | null> {
+  const { data, error } = await supabase
+    .from('usuario')
+    .select('*')
+    .eq('login', login)
+    .eq('senha', senha)
+    .single()
+
+  if (error) {
+    // If not found Supabase returns an error with code 406? We'll normalize to a friendly error
+    throw error
+  }
+
+  return (data as User) ?? null
+}

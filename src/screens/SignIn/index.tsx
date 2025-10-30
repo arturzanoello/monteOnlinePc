@@ -1,4 +1,4 @@
-import { View, Text, Image, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Image, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from "react-native";
 import { styles } from "./styles";
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -6,6 +6,8 @@ import * as Yup from 'yup';
 import pc from '../../../assets/pc.png'
 import { Input, PasswordInput } from "../../components/Input";
 import { Button } from "../../components/button";
+import { loginUser } from '../../utils/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SignInSchema = Yup.object().shape({
     email: Yup.string()
@@ -17,8 +19,24 @@ const SignInSchema = Yup.object().shape({
 });
 
 export function SignIn({ navigation }: any) {
-    const handleSubmit = (values: { email: string; password: string }) => {
-        navigation.navigate('Initial');
+    const handleSubmit = async (values: { email: string; password: string }, helpers?: any) => {
+        try {
+            const user = await loginUser(values.email, values.password);
+            if (!user) throw new Error('Credenciais inválidas');
+
+            // Persist basic user info locally
+            await AsyncStorage.setItem('@current_user', JSON.stringify({ id: user.id, login: user.login }));
+
+            Alert.alert('Sucesso', 'Login realizado com sucesso');
+            navigation.navigate('Initial');
+        } catch (error: any) {
+            const message = error?.message || String(error)
+            if (helpers && typeof helpers.setFieldError === 'function') {
+                helpers.setFieldError('email', 'Email ou senha inválidos')
+            } else {
+                Alert.alert('Erro ao entrar', 'Email ou senha inválidos')
+            }
+        }
     };
 
     return (
