@@ -1,10 +1,11 @@
-import { View, Text, Image, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Image, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from "react-native";
 import { styles } from "./styles";
 import { Input, PasswordInput } from "../../components/Input";
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { Button } from "../../components/button";
 import pc from '../../../assets/pc.png';
+import { registerUser } from '../../utils/api';
 
 const RegisterSchema = Yup.object().shape({
     email: Yup.string()
@@ -22,8 +23,24 @@ const RegisterSchema = Yup.object().shape({
 });
 
 export function Register({ navigation }: any) {
-    const handleSubmit = (values: { email: string; name: string; password: string; checkPassword: string }) => {
-        navigation.navigate('Home');
+    const handleSubmit = async (
+        values: { email: string; name: string; password: string; checkPassword: string },
+        helpers?: any
+    ) => {
+        try {
+            // Call the API helper to insert into `usuario` table
+            await registerUser({ login: values.email, senha: values.password });
+            Alert.alert('Sucesso', 'Cadastro realizado com sucesso');
+            navigation.navigate('Home');
+        } catch (error: any) {
+            // If Supabase returns a conflict/duplicate error, show field error
+            const message = error?.message || String(error)
+            if (helpers && typeof helpers.setFieldError === 'function') {
+                helpers.setFieldError('email', message)
+            } else {
+                Alert.alert('Erro ao cadastrar', message)
+            }
+        }
     };
 
     return (
