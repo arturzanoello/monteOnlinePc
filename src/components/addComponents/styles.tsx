@@ -3,29 +3,48 @@ import { colors } from "../../constants/Colors";
 
 export const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#c5c5c5',
-        borderRadius: 20,
-        padding: 15,
+        backgroundColor: '#f8f8f8',
+        borderRadius: 16,
+        padding: 16,
         alignItems: 'center',
-        marginTop: 20
+        marginTop: 15,
+        width: '100%',
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     textMain: {
-        fontWeight: '800',
-        fontSize: 18
+        fontWeight: '700',
+        fontSize: 16,
+        textAlign: 'center',
+        color: '#333',
+        marginBottom: 8,
     },
     content: {
         alignItems: 'center',
-        marginTop: 10
+        marginTop: 8,
+        width: '100%',
     },
     price: {
         fontSize: 15,
-        fontWeight: '500',
-        textAlign: 'center'
+        fontWeight: '600',
+        textAlign: 'center',
+        color: '#555',
+        marginVertical: 4,
     },
     shop: {
-        fontWeight: '900',
-        fontSize: 16,
+        fontWeight: '700',
+        fontSize: 13,
         textAlign: 'center',
-        marginTop: 10
+        marginTop: 12,
+        color: '#666',
+        backgroundColor: '#e8e8e8',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
     }
 })

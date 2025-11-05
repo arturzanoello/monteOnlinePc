@@ -1,10 +1,12 @@
-import { View, Text, Image, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Image, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from "react-native";
 import { styles } from "./styles";
 import { Input, PasswordInput } from "../../components/Input";
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { Button } from "../../components/button";
 import pc from '../../../assets/pc.png';
+import { supabase } from "../../utils/supabase";
+import { useState } from "react";
 
 const RegisterSchema = Yup.object().shape({
     email: Yup.string()
@@ -22,8 +24,53 @@ const RegisterSchema = Yup.object().shape({
 });
 
 export function Register({ navigation }: any) {
-    const handleSubmit = (values: { email: string; name: string; password: string; checkPassword: string }) => {
-        navigation.navigate('Home');
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (values: { email: string; name: string; password: string; checkPassword: string }) => {
+        setLoading(true);
+        
+        try {
+            // Insere o novo usuário na tabela usuario
+            const { data, error } = await supabase
+                .from('usuario')
+                .insert([
+                    {
+                        login: values.email,
+                        senha: values.password
+                    }
+                ])
+                .select();
+
+            if (error) {
+                console.error('Erro ao cadastrar usuário:', error.message);
+                
+                // Verifica se é erro de login duplicado
+                if (error.code === '23505') {
+                    Alert.alert('Erro', 'Este email já está cadastrado.');
+                } else {
+                    Alert.alert('Erro', 'Não foi possível realizar o cadastro. Tente novamente.');
+                }
+                return;
+            }
+
+            if (data && data.length > 0) {
+                Alert.alert(
+                    'Sucesso!',
+                    'Cadastro realizado com sucesso!',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => navigation.navigate('SignIn')
+                        }
+                    ]
+                );
+            }
+        } catch (error: any) {
+            console.error('Erro ao cadastrar usuário:', error.message);
+            Alert.alert('Erro', 'Ocorreu um erro inesperado. Tente novamente.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -137,8 +184,9 @@ export function Register({ navigation }: any) {
                                     label="Cadastrar"
                                     onPress={handleSubmit}
                                     size="large"
+                                    disabled={loading}
                                 >
-                                    Cadastrar
+                                    {loading ? 'Cadastrando...' : 'Cadastrar'}
                                 </Button>
 
                             </>

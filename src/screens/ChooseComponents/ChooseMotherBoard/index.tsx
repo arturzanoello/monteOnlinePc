@@ -1,44 +1,64 @@
 import { ChooseComponentScreen } from "../../../components/chooseComponentScreen";
-
-const MB_DATA = [
-    {
-        id: "mb1",
-        name: "Asus ROG Strix Z790-E",
-        price: "2.799,99",
-        description: "DDR5, PCIe 5.0, Wi-Fi 6E",
-        shop: "Pichau",
-    },
-    {
-        id: "mb2",
-        name: "Placa-Mãe ASUS Prime H610M-A",
-        price: "799,99",
-        description: "Intel, M-ATX, DDR5, Preto - 90MB1G20-M0EAY0",
-        shop: "Kabum",
-    },
-    {
-        id: "mb3",
-        name: "Placa Mae Gigabyte B760M D2H DDR4",
-        price: "699,99",
-        description: "Socket LGA1700, M-ATX, Chipset Intel B760, B760M-D2H-DDR4",
-        shop: "Pichau",
-    },
-    {
-        id: "mb4",
-        name: "Placa-Mãe ASUS TUF GAMING B760M-PLUS WIFI II",
-        price: "1.259,99",
-        description: "Intel, DDR5, Preto - 90MB1HE0-M0EAY0",
-        shop: "Kabum",
-    },
-];
+import { ActivityIndicator, View, Text } from "react-native";
+import { ComponentSearchTerms } from "../../../utils/componentHelper";
+import { useComponentPagination } from "../../../hooks/useComponentPagination";
 
 export function ChooseMotherboard({ navigation }: any) {
+    const { data, loading, loadingMore, error, hasMore, handleLoadMore, handleSearch } = 
+        useComponentPagination(ComponentSearchTerms.MOTHERBOARD);
+
+    console.log('[ChooseMotherboard] Estado:', { 
+        dataLength: data.length, 
+        loading, 
+        error,
+        searchTerm: ComponentSearchTerms.MOTHERBOARD
+    });
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#0000ff" />
+                <Text style={{ marginTop: 10 }}>Carregando placas-mãe...</Text>
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
+            </View>
+        );
+    }
+
+    // Se não tiver dados após carregar
+    if (!loading && data.length === 0) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
+                    Nenhuma placa-mãe encontrada
+                </Text>
+                <Text style={{ color: '#666', textAlign: 'center' }}>
+                    Ainda não há placas-mãe cadastradas no banco de dados.
+                </Text>
+                <Text style={{ color: '#666', textAlign: 'center', marginTop: 10 }}>
+                    Por enquanto, você pode pular esta etapa.
+                </Text>
+            </View>
+        );
+    }
+
     return (
         <ChooseComponentScreen
             navigation={navigation}
             componentType="motherboard"
             title="Placas-mãe"
             nextScreen="ChooseMemory"
-            componentsData={MB_DATA}
+            componentsData={data}
+            onLoadMore={handleLoadMore}
+            onSearch={handleSearch}
+            hasMore={hasMore}
+            isLoadingMore={loadingMore}
         />
     );
 }

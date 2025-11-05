@@ -1,44 +1,57 @@
 import { ChooseComponentScreen } from "../../../components/chooseComponentScreen";
-
-const RAM_DATA = [
-    {
-        id: "ram1",
-        name: "Kingston Memória Fury Beast RGB 16GB 3200MT/s DDR4 ",
-        price: "345,00",
-        description: "Kingston Memória de computador Fury Beast RGB 16GB 3200MT/s DDR4 CL16 DIMM KF432C16BB12A/16",
-        shop: "Amazon"
-    },
-    {
-        id: "ram2",
-        name: "Kingston Fury Beast, 8GB, 3200MHz, DDR4",
-        price: "139,99",
-        description: "Memória RAM Kingston Fury Beast, 8GB, 3200MHz, DDR4, CL16, Preto - KF432C16BB/8",
-        shop: "Kabum"
-    },
-    {
-        id: "ram3",
-        name: "Team Group T-Force Elite Plus, 16GB (2x8GB), DDR4",
-        price: "279,99",
-        description: "Memoria Team Group T-Force Elite Plus, 16GB (2x8GB), DDR4, 3200MHz, C22, Preto, TPD416G3200HC22DC01",
-        shop: "Pichau"
-    },
-    {
-        id: "ram4",
-        name: "Kingston Fury SuperFrame, 8GB, 3200MHz",
-        price: "149,99",
-        description: "Memória DDR4 Kingston Fury SuperFrame, 8GB, 3200MHz, Black, KF432C16BB/8CLLB",
-        shop: "TerabyteShop"
-    }
-];
+import { ActivityIndicator, View, Text } from "react-native";
+import { ComponentSearchTerms } from "../../../utils/componentHelper";
+import { useComponentPagination } from "../../../hooks/useComponentPagination";
 
 export function ChooseMemory({ navigation }: any) {
+    const { data, loading, loadingMore, error, hasMore, handleLoadMore, handleSearch } = 
+        useComponentPagination(ComponentSearchTerms.MEMORY);
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#0000ff" />
+                <Text style={{ marginTop: 10 }}>Carregando memórias...</Text>
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
+            </View>
+        );
+    }
+
+    // Se não tiver dados após carregar
+    if (!loading && data.length === 0) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
+                    Nenhuma memória encontrada
+                </Text>
+                <Text style={{ color: '#666', textAlign: 'center' }}>
+                    Ainda não há memórias cadastradas no banco de dados.
+                </Text>
+                <Text style={{ color: '#666', textAlign: 'center', marginTop: 10 }}>
+                    Por enquanto, você pode pular esta etapa.
+                </Text>
+            </View>
+        );
+    }
+
     return (
         <ChooseComponentScreen
             navigation={navigation}
             componentType="memory"
             title="Memória RAM"
             nextScreen="ChooseGpu"
-            componentsData={RAM_DATA}
+            componentsData={data}
+            onLoadMore={handleLoadMore}
+            onSearch={handleSearch}
+            hasMore={hasMore}
+            isLoadingMore={loadingMore}
         />
     )
 }

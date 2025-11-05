@@ -1,5 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+export interface User {
+    id: string;
+    login: string;
+    data_criacao?: string;
+}
+
 export interface PcComponent {
     id: string;
     name: string;
@@ -83,6 +89,47 @@ export const deleteBuild = async (buildId: number): Promise<boolean> => {
         return true;
     } catch (error) {
         console.error("Erro ao deletar montagem:", error);
+        return false;
+    }
+};
+
+// Funções para gerenciar o usuário logado
+export const saveUser = async (user: User): Promise<boolean> => {
+    try {
+        await AsyncStorage.setItem('@user', JSON.stringify(user));
+        return true;
+    } catch (error) {
+        console.error("Erro ao salvar usuário:", error);
+        return false;
+    }
+};
+
+export const getUser = async (): Promise<User | null> => {
+    try {
+        const userData = await AsyncStorage.getItem('@user');
+        return userData ? JSON.parse(userData) : null;
+    } catch (error) {
+        console.error("Erro ao obter usuário:", error);
+        return null;
+    }
+};
+
+export const removeUser = async (): Promise<boolean> => {
+    try {
+        await AsyncStorage.removeItem('@user');
+        return true;
+    } catch (error) {
+        console.error("Erro ao remover usuário:", error);
+        return false;
+    }
+};
+
+export const isUserLoggedIn = async (): Promise<boolean> => {
+    try {
+        const user = await getUser();
+        return user !== null;
+    } catch (error) {
+        console.error("Erro ao verificar login:", error);
         return false;
     }
 };

@@ -1,11 +1,14 @@
-import { View, Text, Image, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Image, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from "react-native";
 import { styles } from "./styles";
 import { Formik } from 'formik';
 import * as Yup from 'yup';
+import { useState } from "react";
 
 import pc from '../../../assets/pc.png'
 import { Input, PasswordInput } from "../../components/Input";
 import { Button } from "../../components/button";
+import { supabase } from "../../utils/supabase";
+import { saveUser } from "../../utils/storage";
 
 const SignInSchema = Yup.object().shape({
     email: Yup.string()
@@ -17,8 +20,45 @@ const SignInSchema = Yup.object().shape({
 });
 
 export function SignIn({ navigation }: any) {
-    const handleSubmit = (values: { email: string; password: string }) => {
-        navigation.navigate('Initial');
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (values: { email: string; password: string }) => {
+        setLoading(true);
+        
+        try {
+            // Busca o usuário no banco de dados
+            const { data: usuarios, error } = await supabase
+                .from('usuario')
+                .select('*')
+                .eq('login', values.email)
+                .eq('senha', values.password)
+                .single();
+
+            if (error) {
+                console.error('Erro ao buscar usuário:', error.message);
+                
+                // Se não encontrou o usuário (erro PGRST116)
+                if (error.code === 'PGRST116') {
+                    Alert.alert('Erro', 'Email ou senha incorretos.');
+                } else {
+                    Alert.alert('Erro', 'Não foi possível fazer login. Tente novamente.');
+                }
+                return;
+            }
+
+            if (usuarios) {
+                // Salva os dados do usuário no AsyncStorage
+                await saveUser(usuarios);
+                
+                // Navega direto para a tela Initial
+                navigation.navigate('Initial');
+            }
+        } catch (error: any) {
+            console.error('Erro ao fazer login:', error.message);
+            Alert.alert('Erro', 'Ocorreu um erro inesperado. Tente novamente.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -91,8 +131,13 @@ export function SignIn({ navigation }: any) {
                                     <View style={{ marginTop: 20 }} />
 
                                 </View>
-                                <Button label='Entrar' onPress={handleSubmit} size="large">
-                                    {null}
+                                <Button 
+                                    label='Entrar' 
+                                    onPress={handleSubmit} 
+                                    size="large"
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Entrando...' : 'Entrar'}
                                 </Button>
                             </>
                         )}

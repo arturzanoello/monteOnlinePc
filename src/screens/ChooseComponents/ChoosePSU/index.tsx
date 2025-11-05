@@ -1,44 +1,57 @@
 import { ChooseComponentScreen } from "../../../components/chooseComponentScreen";
-
-const PSU_DATA = [
-    {
-        id: 'psu1',
-        name: 'Gamer Rise Mode Zeus, 1000W, 80 Plus Platinum',
-        price: '699,99',
-        description: 'Fonte Gamer Rise Mode Zeus, 1000W, 80 Plus Platinum, Modular, PFC Ativo, Preto - RM-PSU-01-PA-1000',
-        shop: 'Kabum'
-    },
-    {
-        id: 'psu2',
-        name: 'Mancer Thunder 600W 80 Plus Bronze',
-        price: '249,99',
-        description: 'Fonte Mancer Thunder 600W 80 Plus Bronze, MCR-THR600-BL01',
-        shop: 'Pichau'
-    },
-    {
-        id: 'psu3',
-        name: 'BRX Rainbow RGB, 850W, 80 Plus Bronze',
-        price: '259,90',
-        description: 'Fonte BRX Rainbow RGB, 850W, 80 Plus Bronze, PFC Ativo, 51033682',
-        shop: 'TerabyteShop'
-    },
-    {
-        id: 'psu4',
-        name: 'MSI MAG A650BN, 650W, 80 Plus Bronze',
-        price: '319,99',
-        description: 'Fonte MSI MAG A650BN, 650W, 80 Plus Bronze, PFC Ativo, Com Cabo, Preto - 306-7ZP2B22-CE0',
-        shop: 'Kabum'
-    }
-]
+import { ActivityIndicator, View, Text } from "react-native";
+import { ComponentSearchTerms } from "../../../utils/componentHelper";
+import { useComponentPagination } from "../../../hooks/useComponentPagination";
 
 export function ChoosePsu({ navigation }: any) {
+    const { data, loading, loadingMore, error, hasMore, handleLoadMore, handleSearch } = 
+        useComponentPagination(ComponentSearchTerms.PSU);
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#0000ff" />
+                <Text style={{ marginTop: 10 }}>Carregando fontes...</Text>
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
+            </View>
+        );
+    }
+
+    // Se não tiver dados após carregar
+    if (!loading && data.length === 0) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
+                    Nenhuma fonte encontrada
+                </Text>
+                <Text style={{ color: '#666', textAlign: 'center' }}>
+                    Ainda não há fontes cadastradas no banco de dados.
+                </Text>
+                <Text style={{ color: '#666', textAlign: 'center', marginTop: 10 }}>
+                    Por enquanto, você pode pular esta etapa.
+                </Text>
+            </View>
+        );
+    }
+
     return (
         <ChooseComponentScreen
             navigation={navigation}
             componentType="psu"
             title="Fonte"
             nextScreen="ChooseCase"
-            componentsData={PSU_DATA}
+            componentsData={data}
+            onLoadMore={handleLoadMore}
+            onSearch={handleSearch}
+            hasMore={hasMore}
+            isLoadingMore={loadingMore}
         />
     )
 }

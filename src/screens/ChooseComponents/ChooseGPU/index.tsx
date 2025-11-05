@@ -1,44 +1,57 @@
 import { ChooseComponentScreen } from "../../../components/chooseComponentScreen";
-
-const GPU_DATA = [
-    {
-        id: 'gpu1',
-        name: 'Gigabyte GeForce RTX 5090 Aorus Master Ice, 32GB',
-        price: '26.999,99',
-        description: 'Placa de Video Gigabyte GeForce RTX 5090 Aorus Master Ice, 32GB, GDDR7, 512-bit, GV-N5090AORUS-M-ICE-32GD',
-        shop: 'Pichau'
-    },
-    {
-        id: 'gpu2',
-        name: 'Gigabyte RTX 5060 WINDFORCE OC 8G NVIDIA GeForce, 8GB GDDR7',
-        price: '2.649,00',
-        description: 'Placa de Vídeo Gigabyte RTX 5060 WINDFORCE OC 8G NVIDIA GeForce, 8GB GDDR7, 128bits, DLSS, Ray Tracing - GV-N5060WF2OC-8GD',
-        shop: 'Kabum'
-    },
-    {
-        id: 'gpu3',
-        name: 'Gigabyte NVIDIA GeForce RTX 3050 WINDFORCE OC V2, 6GB GDDR6',
-        price: '1.379,90',
-        description: 'Placa de Vídeo Gigabyte NVIDIA GeForce RTX 3050 WINDFORCE OC V2, 6GB GDDR6, DLSS, Ray Tracing, GV-N3050WF2OCV2-6GD',
-        shop: 'TerabyteShop'
-    },
-    {
-        id: 'gpu4',
-        name: 'RTX 4070 Super Gigabyte Windforce NVIDIA GeForce, 12GB, GDDR6X',
-        price: '4.859,99',
-        description: 'Placa de Vídeo RTX 4070 Super Gigabyte Windforce NVIDIA GeForce, 12GB, GDDR6X, DLSS, Ray Tracing - GV-N407SWF3OC-12GD',
-        shop: 'Kabum'
-    }
-]
+import { ActivityIndicator, View, Text } from "react-native";
+import { ComponentSearchTerms } from "../../../utils/componentHelper";
+import { useComponentPagination } from "../../../hooks/useComponentPagination";
 
 export function ChooseGpu({ navigation }: any) {
+    const { data, loading, loadingMore, error, hasMore, handleLoadMore, handleSearch } = 
+        useComponentPagination(ComponentSearchTerms.GPU);
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#0000ff" />
+                <Text style={{ marginTop: 10 }}>Carregando placas de vídeo...</Text>
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                <Text style={{ color: 'red', textAlign: 'center' }}>{error}</Text>
+            </View>
+        );
+    }
+
+    // Se não tiver dados após carregar
+    if (!loading && data.length === 0) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
+                    Nenhuma placa de vídeo encontrada
+                </Text>
+                <Text style={{ color: '#666', textAlign: 'center' }}>
+                    Ainda não há placas de vídeo cadastradas no banco de dados.
+                </Text>
+                <Text style={{ color: '#666', textAlign: 'center', marginTop: 10 }}>
+                    Por enquanto, você pode pular esta etapa.
+                </Text>
+            </View>
+        );
+    }
+
     return (
         <ChooseComponentScreen
             navigation={navigation}
             componentType="gpu"
             title="Placa de Vídeo"
             nextScreen="ChooseStorage"
-            componentsData={GPU_DATA}
+            componentsData={data}
+            onLoadMore={handleLoadMore}
+            onSearch={handleSearch}
+            hasMore={hasMore}
+            isLoadingMore={loadingMore}
         />
     )
 }
