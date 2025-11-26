@@ -10,8 +10,10 @@ export function ChooseCpu({ navigation }: any) {
         loadingMore,
         error,
         hasMore,
+        sortOrder,
         handleLoadMore,
         handleSearch,
+        handleSortChange,
     } = useComponentPagination(ComponentSearchTerms.CPU);
 
     console.log('[ChooseCpu] Estado:', { 
@@ -49,6 +51,8 @@ export function ChooseCpu({ navigation }: any) {
             componentsData={data}
             onLoadMore={handleLoadMore}
             onSearch={handleSearch}
+            onSortChange={handleSortChange}
+            sortOrder={sortOrder}
             hasMore={hasMore}
             isLoadingMore={loadingMore}
         />

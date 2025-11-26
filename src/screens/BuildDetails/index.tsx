@@ -41,14 +41,8 @@ export function BuildDetails({ navigation, route }: any) {
 
             if (selectedBuild) {
                 setBuild(selectedBuild);
-
-                let total = 0;
-                Object.values(selectedBuild.components).forEach(component => {
-                    if (component) {
-                        total += parsePrice(component.price) * (component.quantity || 1);
-                    }
-                });
-                setTotalPrice(total);
+                // Usa o total que já vem calculado do banco de dados
+                setTotalPrice(selectedBuild.totalPrice);
             }
         } catch (error) {
             console.error("Erro ao carregar montagem:", error);
@@ -153,10 +147,10 @@ export function BuildDetails({ navigation, route }: any) {
         return (
             <View style={styles.container}>
                 <Text style={styles.errorText}>Montagem não encontrada</Text>
-                <Button
-                    label="Voltar"
-                    onPress={() => navigation.goBack()}
-                />
+                <Button label="Voltar"
+                    onPress={() => navigation.goBack()}>
+                    Voltar
+                </Button>
             </View>
         );
     }
@@ -225,8 +219,9 @@ export function BuildDetails({ navigation, route }: any) {
                     <View style={styles.buttonContainer}>
                         <Button
                             label="Salvar alterações"
-                            onPress={handleSave}
-                        />
+                            onPress={handleSave}>
+                                Salvar alterações
+                        </Button>
                     </View>
                 </View>
                 <Text style={styles.textDelete} onPress={handleDelete}>

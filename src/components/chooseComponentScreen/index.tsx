@@ -22,6 +22,8 @@ interface ChooseComponentScreenProps {
     }[];
     onLoadMore?: () => void;
     onSearch?: (query: string) => void;
+    onSortChange?: (order: 'asc' | 'desc') => void;
+    sortOrder?: 'asc' | 'desc';
     hasMore?: boolean;
     isLoadingMore?: boolean;
 }
@@ -34,11 +36,13 @@ export function ChooseComponentScreen({
     componentsData,
     onLoadMore,
     onSearch,
+    onSortChange,
+    sortOrder = 'asc',
     hasMore = false,
     isLoadingMore = false
 }: ChooseComponentScreenProps) {
 
-    const [priceExpensive, setPriceExpensive] = useState(true);
+    const [priceExpensive, setPriceExpensive] = useState(sortOrder === 'desc');
     const [searchQuery, setSearchQuery] = useState('');
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -52,8 +56,22 @@ export function ChooseComponentScreen({
         return parseFloat(cleaned) || 0;
     };
 
+    const handleSortToggle = () => {
+        const newOrder = priceExpensive ? 'asc' : 'desc';
+        setPriceExpensive(!priceExpensive);
+        if (onSortChange) {
+            onSortChange(newOrder);
+        }
+    };
+
     const saveSelectedComponent = async (component: any) => {
         try {
+            console.log('[ChooseComponent] Salvando componente:', {
+                name: component.name,
+                price: component.price,
+                priceType: typeof component.price
+            });
+            
             await AsyncStorage.setItem(
                 `@selected_${componentType}`,
                 JSON.stringify(component)
@@ -157,7 +175,7 @@ export function ChooseComponentScreen({
                     <View style={{ alignItems: 'flex-end' }}>
                         <Pressable
                             style={styles.priceButton}
-                            onPress={() => setPriceExpensive(!priceExpensive)}
+                            onPress={handleSortToggle}
                         >
                             {priceExpensive ? (
                                 <>
@@ -173,24 +191,16 @@ export function ChooseComponentScreen({
                         </Pressable>
                     </View>
 
-                    {componentsData
-                        .slice()
-                        .sort((a, b) => {
-                            const priceA = parsePrice(a.price);
-                            const priceB = parsePrice(b.price);
-                            return priceExpensive ? priceB - priceA : priceA - priceB;
-                        })
-                        .map((component) => (
-                            <AddComponents
-                                key={component.id}
-                                product={component.name}
-                                price={component.price}
-                                description={component.description}
-                                shop={component.shop}
-                                onPress={() => saveSelectedComponent(component)}
-                            />
-                        ))
-                    }
+                    {componentsData.map((component) => (
+                        <AddComponents
+                            key={component.id}
+                            product={component.name}
+                            price={component.price}
+                            description={component.description}
+                            shop={component.shop}
+                            onPress={() => saveSelectedComponent(component)}
+                        />
+                    ))}
 
                     {/* Loading indicator para carregar mais */}
                     {isLoadingMore && (

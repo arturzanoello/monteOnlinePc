@@ -17,7 +17,7 @@ export function AddComponents({ product, price, description, shop, onPress }: Ad
 
             <View style={styles.content}>
                 <Text style={[styles.price, { fontSize: 20, fontWeight: '700', color: '#2e7d32' }]}>
-                    R$ {price}
+                    {price}
                 </Text>
                 <Text style={styles.price} numberOfLines={2}>{description}</Text>
             </View>

@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { getNextBuildId, saveBuild } from "../../utils/storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
@@ -9,6 +9,7 @@ export function SaveBuild({ navigation }: any) {
     const [components, setComponents] = useState<any>({});
     const [totalPrice, setTotalPrice] = useState(0);
     const [nextBuildId, setNextBuildId] = useState(1);
+    const [saving, setSaving] = useState(false);
 
     const parsePrice = (priceString: string): number => {
         if (!priceString) return 0;
@@ -65,10 +66,14 @@ export function SaveBuild({ navigation }: any) {
                     if (value) {
                         const component = JSON.parse(value);
                         loadedComponents[key.replace('@selected_', '')] = component;
-                        total += parsePrice(component.price);
+                        const price = parsePrice(component.price);
+                        const quantity = component.quantity || 1;
+                        console.log('[SaveBuild] Componente:', component.name, 'price:', price, 'qty:', quantity, 'subtotal:', price * quantity);
+                        total += price * quantity;
                     }
                 });
 
+                console.log('[SaveBuild] Total calculado:', total);
                 setComponents(loadedComponents);
                 setTotalPrice(total);
 
@@ -83,25 +88,51 @@ export function SaveBuild({ navigation }: any) {
     }, []);
 
     const handleSaveBuild = async () => {
-        const newBuild = {
-            id: nextBuildId,
-            components,
-            totalPrice
-        };
+        try {
+            setSaving(true);
 
-        await saveBuild(newBuild);
+            const newBuild = {
+                id: nextBuildId,
+                components,
+                totalPrice
+            };
 
-        await AsyncStorage.multiRemove([
-            '@selected_cpu',
-            '@selected_motherboard',
-            '@selected_gpu',
-            '@selected_memory',
-            '@selected_storage',
-            '@selected_psu',
-            '@selected_case'
-        ]);
+            await saveBuild(newBuild);
 
-        navigation.navigate('Build');
+            // Limpa os componentes selecionados
+            await AsyncStorage.multiRemove([
+                '@selected_cpu',
+                '@selected_motherboard',
+                '@selected_gpu',
+                '@selected_memory',
+                '@selected_storage',
+                '@selected_psu',
+                '@selected_case'
+            ]);
+
+            Alert.alert(
+                'Sucesso!',
+                'Montagem salva com sucesso!',
+                [
+                    {
+                        text: 'OK',
+                        onPress: () => navigation.navigate('Build')
+                    }
+                ]
+            );
+        } catch (error: any) {
+            console.error('Erro ao salvar montagem:', error);
+            
+            let errorMessage = 'Não foi possível salvar a montagem. Tente novamente.';
+            
+            if (error.message === 'Usuário não está logado') {
+                errorMessage = 'Você precisa estar logado para salvar uma montagem.';
+            }
+            
+            Alert.alert('Erro', errorMessage);
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -116,7 +147,9 @@ export function SaveBuild({ navigation }: any) {
                                 {componentTranslations[key] || key.toUpperCase()}
                             </Text>
                             <Text style={styles.componentName}>{value.name}</Text>
-                            <Text style={styles.priceText}>R${value.price}</Text>
+                            <Text style={styles.priceText}>
+                                {value.price} {value.quantity && value.quantity > 1 ? `x${value.quantity}` : ''}
+                            </Text>
                         </View>
                     )
                 ))}
@@ -129,8 +162,9 @@ export function SaveBuild({ navigation }: any) {
             </ScrollView>
 
             <Button
-                label="Salvar Montagem"
+                label={saving ? "Salvando..." : "Salvar Montagem"}
                 onPress={handleSaveBuild}
+                disabled={saving}
             />
         </View>
     );

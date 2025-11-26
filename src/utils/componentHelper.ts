@@ -20,7 +20,8 @@ export const fetchComponentsByType = async (
     searchTerm: string,
     searchQuery: string = '',
     page: number = 0,
-    pageSize: number = 20
+    pageSize: number = 20,
+    sortOrder: 'asc' | 'desc' = 'asc'
 ): Promise<{ data: ComponentData[], hasMore: boolean }> => {
     try {
         const from = page * pageSize;
@@ -39,25 +40,73 @@ export const fetchComponentsByType = async (
             query = query.ilike('nome_produto', `%${searchQuery}%`);
         }
 
-        const { data, error, count } = await query
-            .range(from, to)
-            .order('nome_produto', { ascending: true });
+        // Buscar TODOS os dados primeiro (sem paginação) para ordenar corretamente
+        const { data: allData, error: fetchError } = await query;
 
-        if (error) {
-            console.error(`[Supabase Error] ${searchTerm}:`, error);
-            throw error;
+        if (fetchError) {
+            console.error(`[Supabase Error] ${searchTerm}:`, fetchError);
+            throw fetchError;
         }
 
-        const formattedData = data ? data.map(item => ({
-            id: item.id,
-            name: item.nome_produto,
-            price: item.preco_pix || item.preco || 'N/A',
-            description: formatSpecifications(item.especificacoes),
-            shop: item.loja || 'N/A',
-            url: item.url,
-        })) : [];
+        // Ordenar os dados em memória considerando preco_pix_num
+        const sortedData = allData?.sort((a, b) => {
+            const priceA = a.preco_pix_num || 0;
+            const priceB = b.preco_pix_num || 0;
+            return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
+        }) || [];
 
-        const hasMore = count ? (from + pageSize) < count : false;
+        // Agora aplica a paginação nos dados já ordenados
+        const paginatedData = sortedData.slice(from, to + 1);
+        const totalCount = sortedData.length;
+
+        console.log(`[ComponentHelper] Dados ordenados para ${searchTerm}:`, {
+            total: totalCount,
+            page,
+            from,
+            to,
+            sortOrder,
+            primeiros: paginatedData.slice(0, 2).map(item => ({
+                nome: item.nome_produto,
+                preco_pix_num: item.preco_pix_num
+            }))
+        });
+
+        const formattedData = paginatedData ? paginatedData
+            .map(item => {
+            // Pega o preço do campo preco_pix_num
+            const priceNum = item.preco_pix_num;
+            
+            // Se não tem preço válido
+            if (!priceNum || priceNum <= 0) {
+                return {
+                    id: item.id,
+                    name: item.nome_produto,
+                    price: 'N/A',
+                    description: formatSpecifications(item.especificacoes),
+                    shop: item.loja || 'N/A',
+                    url: item.url,
+                };
+            }
+            
+            // Formata o número no padrão brasileiro: R$ 4.199,90
+            const formattedPrice = priceNum.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            
+            return {
+                id: item.id,
+                name: item.nome_produto,
+                price: 'R$ ' + formattedPrice,
+                description: formatSpecifications(item.especificacoes),
+                shop: item.loja || 'N/A',
+                url: item.url,
+            };
+        })
+        .filter(item => item.price !== 'N/A' && item.shop !== 'N/A') // Remove itens sem preço ou sem loja
+        : [];
+
+        const hasMore = (to + 1) < totalCount;
 
         return { data: formattedData, hasMore };
     } catch (error: any) {
@@ -106,7 +155,7 @@ const formatSpecifications = (specs: any): string => {
 export const ComponentSearchTerms = {
     CPU: 'processador',
     MOTHERBOARD: 'placa',  // Ajustado para capturar "Placa-Mãe" ou "Placa Mãe"
-    GPU: 'video',  // Ajustado para capturar "Placa de Vídeo" 
+    GPU: 'Placa de Vídeo',  // Ajustado para capturar "Placa de Vídeo" 
     MEMORY: 'memória',  // Com acento
     STORAGE: 'ssd',
     PSU: 'fonte',

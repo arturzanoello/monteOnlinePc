@@ -4,7 +4,7 @@ import { ComponentSearchTerms } from "../../../utils/componentHelper";
 import { useComponentPagination } from "../../../hooks/useComponentPagination";
 
 export function ChoosePsu({ navigation }: any) {
-    const { data, loading, loadingMore, error, hasMore, handleLoadMore, handleSearch } = 
+    const { data, loading, loadingMore, error, hasMore, sortOrder, handleLoadMore, handleSearch, handleSortChange } = 
         useComponentPagination(ComponentSearchTerms.PSU);
 
     if (loading) {
@@ -50,6 +50,8 @@ export function ChoosePsu({ navigation }: any) {
             componentsData={data}
             onLoadMore={handleLoadMore}
             onSearch={handleSearch}
+            onSortChange={handleSortChange}
+            sortOrder={sortOrder}
             hasMore={hasMore}
             isLoadingMore={loadingMore}
         />

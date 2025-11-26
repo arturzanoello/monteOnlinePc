@@ -9,11 +9,12 @@ export const useComponentPagination = (componentSearchTerm: string) => {
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const isLoadingRef = useRef(false);
 
-    const fetchData = async (pageNum: number, query: string, append: boolean = false) => {
+    const fetchData = async (pageNum: number, query: string, order: 'asc' | 'desc', append: boolean = false) => {
         try {
-            console.log('[fetchData] Iniciando:', { pageNum, query, append, isLoadingRef: isLoadingRef.current });
+            console.log('[fetchData] Iniciando:', { pageNum, query, order, append, isLoadingRef: isLoadingRef.current });
             
             // Evita chamadas duplicadas usando ref
             if (isLoadingRef.current) {
@@ -33,7 +34,8 @@ export const useComponentPagination = (componentSearchTerm: string) => {
                 componentSearchTerm,
                 query,
                 pageNum,
-                20
+                20,
+                order
             );
 
             console.log('[fetchData] Resultado:', { 
@@ -70,21 +72,28 @@ export const useComponentPagination = (componentSearchTerm: string) => {
     };
 
     useEffect(() => {
-        fetchData(0, '');
+        fetchData(0, '', sortOrder);
     }, [componentSearchTerm]);
 
     const handleLoadMore = useCallback(() => {
         if (!loadingMore && hasMore) {
-            fetchData(page + 1, searchQuery, true);
+            fetchData(page + 1, searchQuery, sortOrder, true);
         }
-    }, [page, loadingMore, hasMore, searchQuery]);
+    }, [page, loadingMore, hasMore, searchQuery, sortOrder]);
 
     const handleSearch = useCallback((query: string) => {
         setSearchQuery(query);
         setPage(0);
         setHasMore(true); // Reseta hasMore também
-        fetchData(0, query, false);
-    }, []);
+        fetchData(0, query, sortOrder, false);
+    }, [sortOrder]);
+
+    const handleSortChange = useCallback((order: 'asc' | 'desc') => {
+        setSortOrder(order);
+        setPage(0);
+        setHasMore(true);
+        fetchData(0, searchQuery, order, false);
+    }, [searchQuery]);
 
     return {
         data,
@@ -92,7 +101,9 @@ export const useComponentPagination = (componentSearchTerm: string) => {
         loadingMore,
         error,
         hasMore,
+        sortOrder,
         handleLoadMore,
         handleSearch,
+        handleSortChange,
     };
 };
