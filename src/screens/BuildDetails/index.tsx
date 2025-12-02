@@ -2,13 +2,13 @@ import { View, Text, Pressable, ScrollView, ActivityIndicator, Alert } from "rea
 import { styles } from "./styles";
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import { useState, useEffect } from "react";
 import { Button } from "../../components/button";
-import { getBuilds, updateBuild, PcBuild, PcComponent, deleteBuild } from "../../utils/storage";
+import { getBuilds, PcBuild, deleteBuild } from "../../utils/storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export function BuildDetails({ navigation, route }: any) {
-    const { buildId, buildNumber } = route.params as { buildId: number; buildNumber: number };
+    const { buildId, buildNumber } = route.params as { buildId: number | string; buildNumber: number };
 
     const [build, setBuild] = useState<PcBuild | null>(null);
     const [loading, setLoading] = useState(true);
@@ -37,7 +37,7 @@ export function BuildDetails({ navigation, route }: any) {
         try {
             setLoading(true);
             const savedBuilds = await getBuilds();
-            const selectedBuild = savedBuilds.find(b => b.id === buildId);
+            const selectedBuild = savedBuilds.find(b => b.id.toString() === buildId.toString());
 
             if (selectedBuild) {
                 setBuild(selectedBuild);
@@ -54,53 +54,71 @@ export function BuildDetails({ navigation, route }: any) {
 
     useEffect(() => {
         loadBuild();
-    }, []);
+        
+        // Listener para recarregar quando voltar de uma tela de edição
+        const unsubscribe = navigation.addListener('focus', () => {
+            loadBuild();
+        });
 
-    const updateQuantity = (componentType: string, newQuantity: number) => {
-        if (!build) return;
-        if (newQuantity < 1 || newQuantity > 9) return;
+        return unsubscribe;
+    }, [navigation]);
 
-        // Criar uma cópia profunda do objeto build
-        const updatedBuild = JSON.parse(JSON.stringify(build)) as PcBuild;
-
-        // Atualizar a quantidade do componente específico
-        const component = updatedBuild.components[componentType];
-        if (component) {
-            component.quantity = newQuantity;
-
-            // Calcular novo preço total
-            let newTotal = 0;
-            Object.values(updatedBuild.components).forEach(comp => {
-                if (comp) {
-                    newTotal += parsePrice(comp.price) * (comp.quantity || 1);
-                }
-            });
-
-            setBuild(updatedBuild);
-            setTotalPrice(newTotal);
-        }
+    const getComponentTypeName = (type: string): string => {
+        const names: { [key: string]: string } = {
+            cpu: 'Processador',
+            motherboard: 'Placa-Mãe',
+            memory: 'Memória RAM',
+            gpu: 'Placa de Vídeo',
+            storage: 'Armazenamento',
+            psu: 'Fonte',
+            case: 'Gabinete',
+        };
+        return names[type] || type;
     };
 
-    const handleSave = async () => {
+    const getNextScreen = (type: string): string => {
+        const screens: { [key: string]: string } = {
+            cpu: 'ChooseCpu',
+            motherboard: 'ChooseMotherboard',
+            memory: 'ChooseMemory',
+            gpu: 'ChooseGpu',
+            storage: 'ChooseStorage',
+            psu: 'ChoosePsu',
+            case: 'ChooseCase',
+        };
+        return screens[type] || 'ChooseCpu';
+    };
+
+    const handleEditComponent = async (componentType: string) => {
         if (!build) return;
 
         try {
-            const updatedBuild = {
-                ...build,
-                totalPrice
-            };
-
-            const success = await updateBuild(updatedBuild);
-
-            if (success) {
-                Alert.alert("Sucesso", "Montagem atualizada com sucesso!");
-                navigation.goBack();
-            } else {
-                Alert.alert("Erro", "Não foi possível salvar as alterações");
-            }
+            // Salvar a montagem atual temporariamente
+            await AsyncStorage.setItem('@editing_build_id', buildId.toString());
+            await AsyncStorage.setItem('@editing_build_number', buildNumber.toString());
+            await AsyncStorage.setItem('@editing_component_type', componentType);
+            
+            // Navegar para a tela de seleção do componente
+            const screenName = getNextScreen(componentType);
+            navigation.navigate(screenName, undefined, { pop: true });
         } catch (error) {
-            console.error("Erro ao salvar alterações:", error);
-            Alert.alert("Erro", "Ocorreu um erro ao salvar as alterações");
+            console.error("Erro ao preparar edição:", error);
+            Alert.alert("Erro", "Não foi possível iniciar a edição");
+        }
+    };
+
+    const handleBack = async () => {
+        try {
+            // Limpar flags de edição ao sair
+            await AsyncStorage.removeItem('@editing_build_id');
+            await AsyncStorage.removeItem('@editing_build_number');
+            await AsyncStorage.removeItem('@editing_component_type');
+            
+            // Navegar para Build
+            navigation.navigate('Build', undefined, { pop: true });
+        } catch (error) {
+            console.error("Erro ao voltar:", error);
+            navigation.navigate('Build', undefined, { pop: true });
         }
     };
 
@@ -121,7 +139,7 @@ export function BuildDetails({ navigation, route }: any) {
                             const success = await deleteBuild(buildId);
                             if (success) {
                                 Alert.alert("Sucesso", "Montagem excluída com sucesso!");
-                                navigation.goBack();
+                                await handleBack();
                             } else {
                                 Alert.alert("Erro", "Não foi possível excluir a montagem");
                             }
@@ -148,7 +166,7 @@ export function BuildDetails({ navigation, route }: any) {
             <View style={styles.container}>
                 <Text style={styles.errorText}>Montagem não encontrada</Text>
                 <Button label="Voltar"
-                    onPress={() => navigation.goBack()}>
+                    onPress={() => navigation.navigate('Build', undefined, { pop: true })}>
                     Voltar
                 </Button>
             </View>
@@ -163,52 +181,41 @@ export function BuildDetails({ navigation, route }: any) {
                         name="arrow-back-outline"
                         size={32}
                         color="black"
-                        onPress={() => navigation.goBack()}
+                        onPress={handleBack}
                     />
                     <Feather name="monitor" size={32} color="black" />
                 </View>
-                <Text style={styles.textMain}>Editar Montagem</Text>
+                <Text style={styles.textMain}>Detalhes da Montagem</Text>
 
                 <View style={styles.content}>
                     <Text style={styles.textContent}>Montagem {buildNumber}</Text>
-
 
                     {Object.entries(build.components).map(([type, component]) => {
                         if (!component) return null;
 
                         return (
                             <View key={type} style={styles.itemContent}>
-                                <Text style={styles.textItem}>
-                                    {component.name}
-                                </Text>
-
-                                <View style={styles.quantityContainer}>
-                                    <Pressable
-                                        onPress={() => updateQuantity(type, (component.quantity || 1) - 1)}
-                                        disabled={(component.quantity || 1) <= 1}
-                                    >
-                                        <AntDesign
-                                            name="minuscircleo"
-                                            size={20}
-                                            color={(component.quantity || 1) <= 1 ? "#ccc" : "black"}
-                                        />
-                                    </Pressable>
-                                    <Text style={styles.quantityText}>{component.quantity || 1}</Text>
-                                    <Pressable
-                                        onPress={() => updateQuantity(type, (component.quantity || 1) + 1)}
-                                        disabled={(component.quantity || 1) >= 9}
-                                    >
-                                        <AntDesign
-                                            name="pluscircleo"
-                                            size={20}
-                                            color={(component.quantity || 1) >= 9 ? "#ccc" : "black"}
-                                        />
-                                    </Pressable>
+                                <View style={styles.componentInfo}>
+                                    <Text style={styles.componentType}>
+                                        {getComponentTypeName(type)}
+                                    </Text>
+                                    <Text style={styles.componentName} numberOfLines={2}>
+                                        {component.name}
+                                    </Text>
+                                    <Text style={styles.componentPrice}>
+                                        {component.price}
+                                    </Text>
                                 </View>
+
+                                <Pressable 
+                                    style={styles.editButton}
+                                    onPress={() => handleEditComponent(type)}
+                                >
+                                    <Ionicons name="create-outline" size={24} color="#2e7d32" />
+                                </Pressable>
                             </View>
                         );
                     })}
-
 
                     <View style={styles.totalContainer}>
                         <Text style={styles.totalText}>
@@ -219,8 +226,9 @@ export function BuildDetails({ navigation, route }: any) {
                     <View style={styles.buttonContainer}>
                         <Button
                             label="Salvar alterações"
-                            onPress={handleSave}>
-                                Salvar alterações
+                            onPress={() => navigation.navigate('Build', undefined, { pop: true })}
+                        >
+                            Salvar alterações
                         </Button>
                     </View>
                 </View>

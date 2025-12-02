@@ -4,7 +4,7 @@ import { ComponentSearchTerms } from "../../../utils/componentHelper";
 import { useComponentPagination } from "../../../hooks/useComponentPagination";
 
 export function ChooseMotherboard({ navigation }: any) {
-    const { data, loading, loadingMore, error, hasMore, sortOrder, handleLoadMore, handleSearch, handleSortChange } = 
+    const { data, loading, loadingMore, error, hasMore, sortOrder, searchQuery, handleLoadMore, handleSearch, handleSortChange } = 
         useComponentPagination(ComponentSearchTerms.MOTHERBOARD);
 
     console.log('[ChooseMotherboard] Estado:', { 
@@ -61,6 +61,7 @@ export function ChooseMotherboard({ navigation }: any) {
             sortOrder={sortOrder}
             hasMore={hasMore}
             isLoadingMore={loadingMore}
+            searchValue={searchQuery}
         />
     );
 }

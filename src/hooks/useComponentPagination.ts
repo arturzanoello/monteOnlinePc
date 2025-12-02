@@ -9,8 +9,9 @@ export const useComponentPagination = (componentSearchTerm: string) => {
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc'); // Padrão: mais caros
     const isLoadingRef = useRef(false);
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const fetchData = async (pageNum: number, query: string, order: 'asc' | 'desc', append: boolean = false) => {
         try {
@@ -73,6 +74,13 @@ export const useComponentPagination = (componentSearchTerm: string) => {
 
     useEffect(() => {
         fetchData(0, '', sortOrder);
+        
+        // Cleanup do timeout ao desmontar
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
     }, [componentSearchTerm]);
 
     const handleLoadMore = useCallback(() => {
@@ -82,10 +90,20 @@ export const useComponentPagination = (componentSearchTerm: string) => {
     }, [page, loadingMore, hasMore, searchQuery, sortOrder]);
 
     const handleSearch = useCallback((query: string) => {
+        // Atualiza o valor imediatamente para UI responsiva
         setSearchQuery(query);
-        setPage(0);
-        setHasMore(true); // Reseta hasMore também
-        fetchData(0, query, sortOrder, false);
+        
+        // Limpa timeout anterior
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        
+        // Debounce de 300ms para chamada ao banco
+        searchTimeoutRef.current = setTimeout(() => {
+            setPage(0);
+            setHasMore(true);
+            fetchData(0, query, sortOrder, false);
+        }, 300);
     }, [sortOrder]);
 
     const handleSortChange = useCallback((order: 'asc' | 'desc') => {
@@ -102,6 +120,7 @@ export const useComponentPagination = (componentSearchTerm: string) => {
         error,
         hasMore,
         sortOrder,
+        searchQuery,
         handleLoadMore,
         handleSearch,
         handleSortChange,

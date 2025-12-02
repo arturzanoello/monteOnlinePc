@@ -4,7 +4,7 @@ import { ComponentSearchTerms } from "../../../utils/componentHelper";
 import { useComponentPagination } from "../../../hooks/useComponentPagination";
 
 export function ChooseMemory({ navigation }: any) {
-    const { data, loading, loadingMore, error, hasMore, sortOrder, handleLoadMore, handleSearch, handleSortChange } = 
+    const { data, loading, loadingMore, error, hasMore, sortOrder, searchQuery, handleLoadMore, handleSearch, handleSortChange } = 
         useComponentPagination(ComponentSearchTerms.MEMORY);
 
     if (loading) {
@@ -54,6 +54,7 @@ export function ChooseMemory({ navigation }: any) {
             sortOrder={sortOrder}
             hasMore={hasMore}
             isLoadingMore={loadingMore}
+            searchValue={searchQuery}
         />
     )
 }

@@ -15,7 +15,7 @@ export interface PcComponent {
 }
 
 export interface PcBuild {
-    id: number;
+    id: number | string; // Suporta tanto number quanto UUID string
     components: {
         cpu?: PcComponent | null;
         motherboard?: PcComponent | null;
@@ -220,7 +220,7 @@ export const getBuilds = async (): Promise<PcBuild[]> => {
                     pecas:id_peca (
                         id,
                         nome_produto,
-                        preco_pix_num,
+                        preco_pix,
                         loja
                     )
                 `)
@@ -250,7 +250,7 @@ export const getBuilds = async (): Promise<PcBuild[]> => {
                         const peca = Array.isArray(item.pecas) ? item.pecas[0] : item.pecas;
                         
                         // Formata o preço no padrão brasileiro
-                        const priceNum = peca.preco_pix_num || 0;
+                        const priceNum = peca.preco_pix || 0;
                         const formattedPrice = priceNum.toLocaleString('pt-BR', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
@@ -304,7 +304,7 @@ export const getBuilds = async (): Promise<PcBuild[]> => {
     }
 };
 
-export const deleteBuild = async (buildId: number): Promise<boolean> => {
+export const deleteBuild = async (buildId: number | string): Promise<boolean> => {
     try {
         // Obtém o usuário logado
         const user = await getUser();

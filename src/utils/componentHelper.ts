@@ -50,8 +50,8 @@ export const fetchComponentsByType = async (
 
         // Ordenar os dados em memória considerando preco_pix_num
         const sortedData = allData?.sort((a, b) => {
-            const priceA = a.preco_pix_num || 0;
-            const priceB = b.preco_pix_num || 0;
+            const priceA = a.preco_pix|| 0;
+            const priceB = b.preco_pix|| 0;
             return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
         }) || [];
 
@@ -67,14 +67,14 @@ export const fetchComponentsByType = async (
             sortOrder,
             primeiros: paginatedData.slice(0, 2).map(item => ({
                 nome: item.nome_produto,
-                preco_pix_num: item.preco_pix_num
+                preco_pix: item.preco_pix
             }))
         });
 
         const formattedData = paginatedData ? paginatedData
             .map(item => {
             // Pega o preço do campo preco_pix_num
-            const priceNum = item.preco_pix_num;
+            const priceNum = item.preco_pix;
             
             // Se não tem preço válido
             if (!priceNum || priceNum <= 0) {
@@ -154,8 +154,8 @@ const formatSpecifications = (specs: any): string => {
 // Termos de busca para cada tipo de componente
 export const ComponentSearchTerms = {
     CPU: 'processador',
-    MOTHERBOARD: 'placa',  // Ajustado para capturar "Placa-Mãe" ou "Placa Mãe"
-    GPU: 'Placa de Vídeo',  // Ajustado para capturar "Placa de Vídeo" 
+    MOTHERBOARD: 'Placa-Mãe',
+    GPU: 'Placa de Vídeo',
     MEMORY: 'memória',  // Com acento
     STORAGE: 'ssd',
     PSU: 'fonte',

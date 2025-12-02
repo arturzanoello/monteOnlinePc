@@ -4,7 +4,7 @@ import { ComponentSearchTerms } from "../../../utils/componentHelper";
 import { useComponentPagination } from "../../../hooks/useComponentPagination";
 
 export function ChooseGpu({ navigation }: any) {
-    const { data, loading, loadingMore, error, hasMore, sortOrder, handleLoadMore, handleSearch, handleSortChange } = 
+    const { data, loading, loadingMore, error, hasMore, sortOrder, searchQuery, handleLoadMore, handleSearch, handleSortChange } = 
         useComponentPagination(ComponentSearchTerms.GPU);
 
     if (loading) {
@@ -54,6 +54,7 @@ export function ChooseGpu({ navigation }: any) {
             sortOrder={sortOrder}
             hasMore={hasMore}
             isLoadingMore={loadingMore}
+            searchValue={searchQuery}
         />
     )
 }

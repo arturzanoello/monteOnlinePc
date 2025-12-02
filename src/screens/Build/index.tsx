@@ -15,7 +15,8 @@ export function Build({ navigation }: any) {
         try {
             setLoading(true);
             const savedBuilds = await getBuilds();
-            const sortedBuilds = [...savedBuilds].sort((a, b) => b.id - a.id);
+            // Ordenar por índice invertido já que IDs podem ser UUIDs
+            const sortedBuilds = [...savedBuilds].reverse();
             setBuilds(sortedBuilds);
         } catch (error) {
             console.error("Erro ao carregar montagens:", error);
@@ -39,7 +40,7 @@ export function Build({ navigation }: any) {
         });
     };
 
-    const handleDelete = async (buildId: number, buildNumber: number) => {
+    const handleDelete = async (buildId: number | string, buildNumber: number) => {
         Alert.alert(
             "Confirmar Exclusão",
             `Tem certeza que deseja excluir a Montagem ${buildNumber}?`,
@@ -83,10 +84,13 @@ export function Build({ navigation }: any) {
                     {builds.length === 0 ? (
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyText}>Nenhuma montagem salva</Text>
-                            <Button
+                            <Button                   
                                 label="Criar primeira montagem"
-                                onPress={() => navigation.navigate('ChooseCpu')}
-                            />
+                                onPress={() => navigation.navigate('ChooseCpu', undefined, { pop: true })}>
+                                Criar primeira montagem
+                            </Button>
+             
+                         
                         </View>
                     ) : (
                         builds.map((build, index) => {
@@ -111,8 +115,9 @@ export function Build({ navigation }: any) {
             <View style={styles.footer}>
                 <Button
                     label="Voltar"
-                    onPress={() => navigation.navigate('Initial')}
-                />
+                    onPress={() => navigation.navigate('Initial', undefined, { pop: true })}>
+                    Voltar
+                </Button>
             </View>
         </View>
     );

@@ -11,6 +11,7 @@ export function ChooseCpu({ navigation }: any) {
         error,
         hasMore,
         sortOrder,
+        searchQuery,
         handleLoadMore,
         handleSearch,
         handleSortChange,
@@ -55,6 +56,7 @@ export function ChooseCpu({ navigation }: any) {
             sortOrder={sortOrder}
             hasMore={hasMore}
             isLoadingMore={loadingMore}
+            searchValue={searchQuery}
         />
     );
 }

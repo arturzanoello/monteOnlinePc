@@ -12,9 +12,6 @@ const RegisterSchema = Yup.object().shape({
     email: Yup.string()
         .email('E-mail inválido')
         .required('E-mail é obrigatório'),
-    name: Yup.string()
-        .min(2, 'Nome deve ter pelo menos 2 caracteres')
-        .required('Nome é obrigatório'),
     password: Yup.string()
         .min(6, 'Senha deve ter pelo menos 6 caracteres')
         .required('Senha é obrigatória'),
@@ -26,7 +23,7 @@ const RegisterSchema = Yup.object().shape({
 export function Register({ navigation }: any) {
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (values: { email: string; name: string; password: string; checkPassword: string }) => {
+    const handleSubmit = async (values: { email: string; password: string; checkPassword: string }) => {
         setLoading(true);
         
         try {
@@ -95,7 +92,7 @@ export function Register({ navigation }: any) {
                     <Image source={pc} style={styles.image} />
 
                     <Formik
-                        initialValues={{ email: '', name: '', password: '', checkPassword: '' }}
+                        initialValues={{ email: '', password: '', checkPassword: '' }}
                         validationSchema={RegisterSchema}
                         onSubmit={handleSubmit}
                         validateOnChange={false}
@@ -122,24 +119,6 @@ export function Register({ navigation }: any) {
                                         </Text>
                                     )}
 
-                                    <Input
-                                        label="Nome Completo"
-                                        value={values.name}
-                                        onChangeText={(text) => {
-                                            handleChange('name')(text);
-                                            if (errors.name) {
-                                                setFieldError('name', '');
-                                            }
-                                        }}
-                                        onBlur={handleBlur('name')}
-                                        error={!!errors.name}
-                                    />
-                                    {errors.name && (
-                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
-                                            {errors.name}
-                                        </Text>
-                                    )}
-
                                     <PasswordInput
                                         label="Digite sua senha"
                                         value={values.password}
@@ -158,7 +137,7 @@ export function Register({ navigation }: any) {
                                         </Text>
                                     )}
 
-                                    <PasswordInput
+                                    <Input
                                         label="Confirme sua senha"
                                         value={values.checkPassword}
                                         onChangeText={(text) => {

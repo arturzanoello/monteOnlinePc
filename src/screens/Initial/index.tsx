@@ -22,7 +22,7 @@ export function Initial({ navigation }: any) {
 
                 <Button
                     label="Ver montagens"
-                    onPress={() => navigation.navigate('Build')}
+                    onPress={() => navigation.navigate('Build', undefined, { pop: true })}
                 >
                     Ver montagens
                 </Button>
@@ -30,7 +30,7 @@ export function Initial({ navigation }: any) {
                 <Button
                     label="Montar Computador"
                     style={{ marginTop: 10 }}
-                    onPress={() => navigation.navigate('ChooseCpu')}
+                    onPress={() => navigation.navigate('ChooseCpu', undefined, { pop: true })}
                 >
                     Montar Computador
                 </Button>

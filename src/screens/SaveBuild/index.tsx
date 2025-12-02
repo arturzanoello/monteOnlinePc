@@ -164,8 +164,10 @@ export function SaveBuild({ navigation }: any) {
             <Button
                 label={saving ? "Salvando..." : "Salvar Montagem"}
                 onPress={handleSaveBuild}
-                disabled={saving}
-            />
+                disabled={saving}>
+                {saving ? "Salvando..." : "Salvar Montagem"}
+            </Button>
+        
         </View>
     );
 }

@@ -32,9 +32,19 @@ export const styles = StyleSheet.create({
     price: {
         fontSize: 15,
         fontWeight: '600',
-        textAlign: 'center',
         color: '#555',
         marginVertical: 4,
+        marginBottom: 20,
+    },
+    description: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: '#666',
+        textAlign: 'center',
+        lineHeight: 16,
+        marginTop: -3,     
+        marginBottom: -3,     
+        paddingHorizontal: 4,
     },
     shop: {
         fontWeight: '700',

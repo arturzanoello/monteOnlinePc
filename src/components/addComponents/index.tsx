@@ -13,13 +13,17 @@ interface AddComponents {
 export function AddComponents({ product, price, description, shop, onPress }: AddComponents) {
     return (
         <View style={styles.container}>
-            <Text style={styles.textMain} numberOfLines={2}>{product}</Text>
+            <Text style={styles.textMain}>{product}</Text>
 
             <View style={styles.content}>
                 <Text style={[styles.price, { fontSize: 20, fontWeight: '700', color: '#2e7d32' }]}>
                     {price}
                 </Text>
-                <Text style={styles.price} numberOfLines={2}>{description}</Text>
+                {description.split('\n').map((line, index) => (
+                    <Text key={index} style={styles.description}>
+                        {line.trim()}
+                    </Text>
+                ))}
             </View>
 
             <Button

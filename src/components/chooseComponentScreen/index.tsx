@@ -26,6 +26,7 @@ interface ChooseComponentScreenProps {
     sortOrder?: 'asc' | 'desc';
     hasMore?: boolean;
     isLoadingMore?: boolean;
+    searchValue?: string;
 }
 
 export function ChooseComponentScreen({
@@ -39,22 +40,11 @@ export function ChooseComponentScreen({
     onSortChange,
     sortOrder = 'asc',
     hasMore = false,
-    isLoadingMore = false
+    isLoadingMore = false,
+    searchValue = ''
 }: ChooseComponentScreenProps) {
 
     const [priceExpensive, setPriceExpensive] = useState(sortOrder === 'desc');
-    const [searchQuery, setSearchQuery] = useState('');
-    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    const parsePrice = (priceString: string): number => {
-        if (!priceString) return 0;
-        const cleaned = priceString
-            .replace('R$', '')
-            .replace(/\s/g, '')
-            .replace(/\./g, '')
-            .replace(',', '.');
-        return parseFloat(cleaned) || 0;
-    };
 
     const handleSortToggle = () => {
         const newOrder = priceExpensive ? 'asc' : 'desc';
@@ -72,11 +62,91 @@ export function ChooseComponentScreen({
                 priceType: typeof component.price
             });
             
+            // Verificar se está em modo de edição
+            const editingBuildId = await AsyncStorage.getItem('@editing_build_id');
+            const editingBuildNumber = await AsyncStorage.getItem('@editing_build_number');
+            const editingComponentType = await AsyncStorage.getItem('@editing_component_type');
+            
+            console.log('[ChooseComponent] Modo de edição:', {
+                editingBuildId,
+                editingBuildNumber,
+                editingComponentType,
+                currentComponentType: componentType,
+                isEditing: editingBuildId && editingComponentType === componentType
+            });
+            
+            if (editingBuildId && editingBuildNumber && editingComponentType === componentType) {
+                // Modo de edição: atualizar o componente na build existente
+                console.log('[ChooseComponent] Atualizando build em modo de edição');
+                
+                const { getBuilds, updateBuild } = await import('../../utils/storage');
+                const builds = await getBuilds();
+                
+                // Comparar como string já que o ID pode ser UUID
+                const buildToEdit = builds.find(b => b.id.toString() === editingBuildId);
+                
+                if (buildToEdit) {
+                    console.log('[ChooseComponent] Build encontrada, atualizando componente');
+                    
+                    // Atualizar o componente específico
+                    buildToEdit.components[componentType] = {
+                        id: component.id,
+                        name: component.name,
+                        price: component.price,
+                        quantity: buildToEdit.components[componentType]?.quantity || 1
+                    };
+                    
+                    // Recalcular o preço total
+                    const parsePrice = (priceString: string): number => {
+                        if (!priceString) return 0;
+                        const cleaned = priceString
+                            .replace('R$', '')
+                            .replace(/\s/g, '')
+                            .replace(/\./g, '')
+                            .replace(',', '.');
+                        return parseFloat(cleaned) || 0;
+                    };
+                    
+                    let newTotal = 0;
+                    Object.values(buildToEdit.components).forEach(comp => {
+                        if (comp) {
+                            newTotal += parsePrice(comp.price) * (comp.quantity || 1);
+                        }
+                    });
+                    
+                    buildToEdit.totalPrice = newTotal;
+                    
+                    // Salvar a build atualizada
+                    const success = await updateBuild(buildToEdit);
+                    console.log('[ChooseComponent] Build atualizada:', success);
+                    
+                    // Limpar flags de edição
+                    await AsyncStorage.removeItem('@editing_build_id');
+                    await AsyncStorage.removeItem('@editing_build_number');
+                    await AsyncStorage.removeItem('@editing_component_type');
+                    
+                    console.log('[ChooseComponent] Navegando de volta para BuildDetails');
+                    
+                    // Voltar para a tela de detalhes com os parâmetros corretos
+                    navigation.navigate('BuildDetails', {
+                        buildId: editingBuildId, // Manter como string/UUID
+                        buildNumber: parseInt(editingBuildNumber)
+                    });
+                    return; // IMPORTANTE: retornar aqui para não executar o código abaixo
+                } else {
+                    console.log('[ChooseComponent] Build não encontrada');
+                }
+            }
+            
+            // Modo normal: salvar para nova montagem
+            console.log('[ChooseComponent] Modo normal, salvando para nova montagem');
             await AsyncStorage.setItem(
                 `@selected_${componentType}`,
                 JSON.stringify(component)
             );
-            navigation.navigate(nextScreen);
+            navigation.navigate(nextScreen, undefined, 
+                { pop: true}
+            );
         } catch (e) {
             console.error(`Erro ao salvar ${componentType}:`, e);
         }
@@ -95,29 +165,16 @@ export function ChooseComponentScreen({
     };
 
     const handleSearch = (text: string) => {
-        setSearchQuery(text);
-        
-        // Limpa o timeout anterior
-        if (searchTimeoutRef.current) {
-            clearTimeout(searchTimeoutRef.current);
+        // Chama o callback imediatamente para atualizar o valor visual
+        if (onSearch) {
+            onSearch(text);
         }
-        
-        // Cria um novo timeout para buscar após 500ms de inatividade
-        searchTimeoutRef.current = setTimeout(() => {
-            if (onSearch) {
-                onSearch(text);
-            }
-        }, 500);
     };
 
-    // Limpa o timeout quando o componente desmonta
+    // Sincroniza priceExpensive com sortOrder externo
     useEffect(() => {
-        return () => {
-            if (searchTimeoutRef.current) {
-                clearTimeout(searchTimeoutRef.current);
-            }
-        };
-    }, []);
+        setPriceExpensive(sortOrder === 'desc');
+    }, [sortOrder]);
 
     return (
         <View style={styles.container}>
@@ -161,10 +218,10 @@ export function ChooseComponentScreen({
                                 }}
                                 placeholder="Buscar produtos..."
                                 placeholderTextColor="#999"
-                                value={searchQuery}
+                                value={searchValue}
                                 onChangeText={handleSearch}
                             />
-                            {searchQuery.length > 0 && (
+                            {searchValue.length > 0 && (
                                 <Pressable onPress={() => handleSearch('')}>
                                     <Ionicons name="close-circle" size={20} color="#666" />
                                 </Pressable>
