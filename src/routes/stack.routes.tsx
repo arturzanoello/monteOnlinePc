@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Home } from '../screens/Home';
 import { SignIn } from '../screens/SignIn';
 import { Register } from '../screens/Register';
+import { ForgotPassword } from '../screens/ForgotPassword';
 import { Initial } from '../screens/Initial';
 import { Build } from '../screens/Build';
 
@@ -16,6 +17,10 @@ import { ChoosePsu } from '../screens/ChooseComponents/ChoosePSU';
 import { SaveBuild } from '../screens/SaveBuild';
 import { BuildDetails } from '../screens/BuildDetails';
 
+import { About } from '../screens/About';
+import { PriceAlerts } from '../screens/PriceAlerts';
+import { Reviews } from '../screens/Reviews';
+
 const Stack = createStackNavigator();
 
 export function StackRoutes() {
@@ -24,6 +29,7 @@ export function StackRoutes() {
       <Stack.Screen name='Home' component={Home} />
       <Stack.Screen name='SignIn' component={SignIn} />
       <Stack.Screen name='Register' component={Register} />
+      <Stack.Screen name='ForgotPassword' component={ForgotPassword} />
       <Stack.Screen name='Initial' component={Initial} />
       <Stack.Screen name='Build' component={Build} />
       <Stack.Screen name='SaveBuild' component={SaveBuild} />
@@ -36,6 +42,10 @@ export function StackRoutes() {
       <Stack.Screen name='ChooseStorage' component={ChooseStorage} />
       <Stack.Screen name='ChoosePsu' component={ChoosePsu} />
       <Stack.Screen name='ChooseCase' component={ChooseCase} />
+
+      <Stack.Screen name='About' component={About} />
+      <Stack.Screen name='PriceAlerts' component={PriceAlerts} />
+      <Stack.Screen name='Reviews' component={Reviews} />
     </Stack.Navigator>
   );
 }

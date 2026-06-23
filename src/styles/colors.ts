@@ -113,3 +113,19 @@ export const Colors = {
     shadowMedium: 'rgba(0, 0, 0, 0.2)',
     shadowDark: 'rgba(0, 0, 0, 0.3)',
 };
+
+export const DarkColors = {
+    ...Colors,
+    primary: '#90CAF9', // Lighter for dark mode
+    primaryDark: '#42A5F5',
+    background: '#121212',
+    surface: '#1E1E1E',
+    textPrimary: '#E0E0E0', // WCAG AA contrast against #121212
+    textSecondary: '#AAAAAA',
+    border: '#333333',
+    divider: '#424242',
+};
+
+export const LightColors = {
+    ...Colors,
+};

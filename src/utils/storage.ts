@@ -27,6 +27,7 @@ export interface PcBuild {
         [key: string]: PcComponent | null | undefined; // Índice para tipos dinâmicos
     };
     totalPrice: number;
+    category?: 'Gamer' | 'Escritório' | 'Design';
 }
 
 export const updateBuild = async (build: PcBuild) => {
@@ -120,7 +121,8 @@ export const saveBuild = async (newBuild: PcBuild) => {
             .from('montagens')
             .insert([{
                 id_usuario: user.id,
-                data_criacao: new Date().toISOString()
+                data_criacao: new Date().toISOString(),
+                categoria: newBuild.category || 'Gamer'
             }])
             .select()
             .single();

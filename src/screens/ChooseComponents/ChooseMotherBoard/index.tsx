@@ -3,9 +3,49 @@ import { ActivityIndicator, View, Text } from "react-native";
 import { ComponentSearchTerms } from "../../../utils/componentHelper";
 import { useComponentPagination } from "../../../hooks/useComponentPagination";
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState, useEffect } from 'react';
+
 export function ChooseMotherboard({ navigation }: any) {
-    const { data, loading, loadingMore, error, hasMore, sortOrder, searchQuery, handleLoadMore, handleSearch, handleSortChange } = 
-        useComponentPagination(ComponentSearchTerms.MOTHERBOARD);
+    const [socketFilter, setSocketFilter] = useState('');
+    const [checkingSocket, setCheckingSocket] = useState(true);
+
+    useEffect(() => {
+        const checkCpuSocket = async () => {
+            try {
+                const cpuData = await AsyncStorage.getItem('@selected_cpu');
+                if (cpuData) {
+                    const cpu = JSON.parse(cpuData);
+                    const name = cpu.name.toLowerCase();
+                    const desc = cpu.description.toLowerCase();
+                    
+                    if (name.includes('am5') || desc.includes('am5') || name.includes('ryzen 7000') || name.includes('ryzen 8000') || name.includes('ryzen 9000')) {
+                        setSocketFilter('AM5');
+                    } else if (name.includes('lga 1700') || desc.includes('lga 1700') || name.includes('intel') || name.includes('core')) {
+                        // Assuming newer intel core processors use LGA 1700
+                        setSocketFilter('1700');
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao ler CPU', error);
+            } finally {
+                setCheckingSocket(false);
+            }
+        };
+        checkCpuSocket();
+    }, []);
+
+    const { data, loading, loadingMore, error, hasMore, sortMethod, searchQuery, handleLoadMore, handleSearch, handleSortChange, handlePriceFilter, minPrice, maxPrice } = 
+        useComponentPagination(ComponentSearchTerms.MOTHERBOARD, socketFilter);
+
+    if (checkingSocket) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#0000ff" />
+                <Text style={{ marginTop: 10 }}>Verificando compatibilidade...</Text>
+            </View>
+        );
+    }
 
     console.log('[ChooseMotherboard] Estado:', { 
         dataLength: data.length, 
@@ -58,10 +98,13 @@ export function ChooseMotherboard({ navigation }: any) {
             onLoadMore={handleLoadMore}
             onSearch={handleSearch}
             onSortChange={handleSortChange}
-            sortOrder={sortOrder}
+            onPriceFilterChange={handlePriceFilter}
+            sortMethod={sortMethod}
             hasMore={hasMore}
             isLoadingMore={loadingMore}
             searchValue={searchQuery}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
         />
     );
 }

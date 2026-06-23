@@ -15,6 +15,9 @@ export function ChooseCpu({ navigation }: any) {
         handleLoadMore,
         handleSearch,
         handleSortChange,
+        handlePriceFilter,
+        minPrice,
+        maxPrice,
     } = useComponentPagination(ComponentSearchTerms.CPU);
 
     console.log('[ChooseCpu] Estado:', { 
@@ -53,10 +56,13 @@ export function ChooseCpu({ navigation }: any) {
             onLoadMore={handleLoadMore}
             onSearch={handleSearch}
             onSortChange={handleSortChange}
-            sortOrder={sortOrder}
+            onPriceFilterChange={handlePriceFilter}
+            sortMethod={sortMethod}
             hasMore={hasMore}
             isLoadingMore={loadingMore}
             searchValue={searchQuery}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
         />
     );
 }

@@ -22,11 +22,14 @@ interface ChooseComponentScreenProps {
     }[];
     onLoadMore?: () => void;
     onSearch?: (query: string) => void;
-    onSortChange?: (order: 'asc' | 'desc') => void;
-    sortOrder?: 'asc' | 'desc';
+    onSortChange?: (order: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc') => void;
+    onPriceFilterChange?: (min?: number, max?: number) => void;
+    sortMethod?: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc';
     hasMore?: boolean;
     isLoadingMore?: boolean;
     searchValue?: string;
+    minPrice?: number;
+    maxPrice?: number;
 }
 
 export function ChooseComponentScreen({
@@ -38,19 +41,39 @@ export function ChooseComponentScreen({
     onLoadMore,
     onSearch,
     onSortChange,
-    sortOrder = 'asc',
+    onPriceFilterChange,
+    sortMethod = 'price_desc',
     hasMore = false,
     isLoadingMore = false,
-    searchValue = ''
+    searchValue = '',
+    minPrice,
+    maxPrice
 }: ChooseComponentScreenProps) {
 
-    const [priceExpensive, setPriceExpensive] = useState(sortOrder === 'desc');
+    const [currentSort, setCurrentSort] = useState(sortMethod);
+    const [localMinPrice, setLocalMinPrice] = useState(minPrice?.toString() || '');
+    const [localMaxPrice, setLocalMaxPrice] = useState(maxPrice?.toString() || '');
 
     const handleSortToggle = () => {
-        const newOrder = priceExpensive ? 'asc' : 'desc';
-        setPriceExpensive(!priceExpensive);
+        const orderCycle = {
+            'price_desc': 'price_asc',
+            'price_asc': 'name_asc',
+            'name_asc': 'name_desc',
+            'name_desc': 'price_desc'
+        };
+        const nextSort = orderCycle[currentSort] as 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc';
+        setCurrentSort(nextSort);
         if (onSortChange) {
-            onSortChange(newOrder);
+            onSortChange(nextSort);
+        }
+    };
+
+    const applyPriceFilter = () => {
+        if (onPriceFilterChange) {
+            onPriceFilterChange(
+                localMinPrice ? parseFloat(localMinPrice) : undefined,
+                localMaxPrice ? parseFloat(localMaxPrice) : undefined
+            );
         }
     };
 
@@ -128,10 +151,12 @@ export function ChooseComponentScreen({
         }
     };
 
-    // Sincroniza priceExpensive com sortOrder externo
+    // Sincroniza currentSort com sortMethod externo
     useEffect(() => {
-        setPriceExpensive(sortOrder === 'desc');
-    }, [sortOrder]);
+        if (sortMethod) {
+            setCurrentSort(sortMethod);
+        }
+    }, [sortMethod]);
 
     return (
         <View style={styles.container}>
@@ -186,20 +211,52 @@ export function ChooseComponentScreen({
                         </View>
                     </View>
 
-                    <View style={{ alignItems: 'flex-end' }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+                        <View style={{ flexDirection: 'row', flex: 1, marginRight: 10 }}>
+                            <TextInput
+                                style={{ flex: 1, borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, padding: 8, marginRight: 5 }}
+                                placeholder="Min (R$)"
+                                keyboardType="numeric"
+                                value={localMinPrice}
+                                onChangeText={setLocalMinPrice}
+                                onBlur={applyPriceFilter}
+                            />
+                            <TextInput
+                                style={{ flex: 1, borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, padding: 8 }}
+                                placeholder="Max (R$)"
+                                keyboardType="numeric"
+                                value={localMaxPrice}
+                                onChangeText={setLocalMaxPrice}
+                                onBlur={applyPriceFilter}
+                            />
+                        </View>
+
                         <Pressable
                             style={styles.priceButton}
                             onPress={handleSortToggle}
                         >
-                            {priceExpensive ? (
+                            {currentSort === 'price_desc' && (
                                 <>
-                                    <Text style={styles.priceButtonText}>Preços mais altos</Text>
-                                    <Ionicons name="arrow-up" size={26} color="black" />
+                                    <Text style={styles.priceButtonText}>Maior Preço</Text>
+                                    <Ionicons name="arrow-up" size={20} color="black" />
                                 </>
-                            ) : (
+                            )}
+                            {currentSort === 'price_asc' && (
                                 <>
-                                    <Text style={styles.priceButtonText}>Preços mais baixos</Text>
-                                    <Ionicons name="arrow-down" size={26} color="black" />
+                                    <Text style={styles.priceButtonText}>Menor Preço</Text>
+                                    <Ionicons name="arrow-down" size={20} color="black" />
+                                </>
+                            )}
+                            {currentSort === 'name_asc' && (
+                                <>
+                                    <Text style={styles.priceButtonText}>Nome (A-Z)</Text>
+                                    <Ionicons name="text-outline" size={20} color="black" />
+                                </>
+                            )}
+                            {currentSort === 'name_desc' && (
+                                <>
+                                    <Text style={styles.priceButtonText}>Nome (Z-A)</Text>
+                                    <Ionicons name="text-outline" size={20} color="black" />
                                 </>
                             )}
                         </Pressable>

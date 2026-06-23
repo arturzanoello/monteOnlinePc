@@ -10,6 +10,7 @@ export function SaveBuild({ navigation }: any) {
     const [totalPrice, setTotalPrice] = useState(0);
     const [nextBuildId, setNextBuildId] = useState(1);
     const [saving, setSaving] = useState(false);
+    const [category, setCategory] = useState<'Gamer' | 'Escritório' | 'Design'>('Gamer');
 
     const parsePrice = (priceString: string): number => {
         if (!priceString) return 0;
@@ -94,7 +95,8 @@ export function SaveBuild({ navigation }: any) {
             const newBuild = {
                 id: nextBuildId,
                 components,
-                totalPrice
+                totalPrice,
+                category
             };
 
             await saveBuild(newBuild);
@@ -138,6 +140,25 @@ export function SaveBuild({ navigation }: any) {
     return (
         <View style={styles.container}>
             <Text style={styles.textMain}>Resumo da Montagem</Text>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 10 }}>
+                {['Gamer', 'Escritório', 'Design'].map((cat) => (
+                    <Text 
+                        key={cat} 
+                        style={{
+                            marginHorizontal: 10,
+                            padding: 8,
+                            borderRadius: 8,
+                            backgroundColor: category === cat ? '#2196F3' : '#ddd',
+                            color: category === cat ? 'white' : 'black',
+                            fontWeight: 'bold'
+                        }}
+                        onPress={() => setCategory(cat as any)}
+                    >
+                        {cat}
+                    </Text>
+                ))}
+            </View>
 
             <ScrollView style={styles.scrollView}>
                 {Object.entries(components).map(([key, value]: [string, any]) => (

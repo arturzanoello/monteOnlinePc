@@ -12,7 +12,7 @@ import { saveUser } from "../../utils/storage";
 
 const SignInSchema = Yup.object().shape({
     email: Yup.string()
-        .email('E-mail inválido')
+        .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'E-mail inválido')
         .required('E-mail é obrigatório'),
     password: Yup.string()
         .min(6, 'Senha deve ter pelo menos 6 caracteres')
@@ -143,6 +143,7 @@ export function SignIn({ navigation }: any) {
                         )}
                     </Formik>
 
+                    <Text style={{ ...styles.textRegister, marginTop: 10, marginBottom: 10 }} onPress={() => navigation.navigate('ForgotPassword')}>Esqueceu a senha?</Text>
                     <Text style={styles.textRegister} onPress={() => navigation.goBack()}>Voltar</Text>
 
                 </ScrollView>

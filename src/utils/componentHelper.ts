@@ -21,7 +21,9 @@ export const fetchComponentsByType = async (
     searchQuery: string = '',
     page: number = 0,
     pageSize: number = 20,
-    sortOrder: 'asc' | 'desc' = 'asc'
+    sortMethod: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' = 'price_desc',
+    minPrice?: number,
+    maxPrice?: number
 ): Promise<{ data: ComponentData[], hasMore: boolean }> => {
     try {
         const from = page * pageSize;
@@ -40,32 +42,38 @@ export const fetchComponentsByType = async (
             query = query.ilike('nome_produto', `%${searchQuery}%`);
         }
 
-        // Buscar TODOS os dados primeiro (sem paginação) para ordenar corretamente
-        const { data: allData, error: fetchError } = await query;
+        if (minPrice !== undefined) {
+            query = query.gte('preco_pix', minPrice);
+        }
+        if (maxPrice !== undefined) {
+            query = query.lte('preco_pix', maxPrice);
+        }
+
+        // Adicionar ordenação ao banco de dados
+        if (sortMethod.startsWith('price')) {
+            query = query.order('preco_pix', { ascending: sortMethod === 'price_asc', nullsFirst: false });
+        } else if (sortMethod.startsWith('name')) {
+            query = query.order('nome_produto', { ascending: sortMethod === 'name_asc', nullsFirst: false });
+        }
+        
+        // Aplicar a paginação na própria query
+        query = query.range(from, to);
+
+        // Buscar dados paginados do banco
+        const { data: paginatedData, count: totalCount, error: fetchError } = await query;
 
         if (fetchError) {
             console.error(`[Supabase Error] ${searchTerm}:`, fetchError);
             throw fetchError;
         }
 
-        // Ordenar os dados em memória considerando preco_pix_num
-        const sortedData = allData?.sort((a, b) => {
-            const priceA = a.preco_pix|| 0;
-            const priceB = b.preco_pix|| 0;
-            return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
-        }) || [];
-
-        // Agora aplica a paginação nos dados já ordenados
-        const paginatedData = sortedData.slice(from, to + 1);
-        const totalCount = sortedData.length;
-
-        console.log(`[ComponentHelper] Dados ordenados para ${searchTerm}:`, {
+        console.log(`[ComponentHelper] Dados retornados para ${searchTerm}:`, {
             total: totalCount,
             page,
             from,
             to,
-            sortOrder,
-            primeiros: paginatedData.slice(0, 2).map(item => ({
+            sortMethod,
+            primeiros: paginatedData?.slice(0, 2).map(item => ({
                 nome: item.nome_produto,
                 preco_pix: item.preco_pix
             }))
@@ -106,7 +114,7 @@ export const fetchComponentsByType = async (
         .filter(item => item.price !== 'N/A' && item.shop !== 'N/A') // Remove itens sem preço ou sem loja
         : [];
 
-        const hasMore = (to + 1) < totalCount;
+        const hasMore = totalCount ? (to + 1) < totalCount : false;
 
         return { data: formattedData, hasMore };
     } catch (error: any) {

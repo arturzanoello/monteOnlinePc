@@ -6,17 +6,24 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "jest"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.1.2",
+    "@react-native-firebase/app": "^25.0.1",
+    "@react-native-firebase/messaging": "^25.0.1",
     "@react-navigation/native": "^7.1.9",
     "@react-navigation/stack": "^7.3.2",
     "@supabase/supabase-js": "^2.79.0",
     "expo": "^53.0.10",
     "expo-asset": "~11.1.7",
+    "expo-background-fetch": "~13.1.6",
     "expo-file-system": "~18.1.11",
+    "expo-image": "~2.4.1",
+    "expo-notifications": "^0.31.5",
     "expo-status-bar": "~2.2.3",
+    "expo-task-manager": "~13.1.6",
     "formik": "^2.4.6",
     "react": "19.0.0",
     "react-native": "^0.79.3",
@@ -28,7 +35,15 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^14.0.1",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.0.10",
+    "@types/react-test-renderer": "^19.1.0",
+    "babel-jest": "^30.4.1",
+    "jest": "^30.4.2",
+    "jest-expo": "^56.0.5",
+    "react-test-renderer": "^19.2.7",
     "typescript": "~5.8.3"
   },
   "private": true

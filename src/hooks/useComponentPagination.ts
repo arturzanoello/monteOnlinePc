@@ -1,19 +1,21 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchComponentsByType, ComponentData } from '../utils/componentHelper';
 
-export const useComponentPagination = (componentSearchTerm: string) => {
+export const useComponentPagination = (componentSearchTerm: string, defaultSearchQuery: string = '') => {
     const [data, setData] = useState<ComponentData[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc'); // Padrão: mais caros
+    const [searchQuery, setSearchQuery] = useState(defaultSearchQuery);
+    const [sortMethod, setSortMethod] = useState<'price_asc' | 'price_desc' | 'name_asc' | 'name_desc'>('price_desc');
+    const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
+    const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
     const isLoadingRef = useRef(false);
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const fetchData = async (pageNum: number, query: string, order: 'asc' | 'desc', append: boolean = false) => {
+    const fetchData = async (pageNum: number, query: string, order: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc', min?: number, max?: number, append: boolean = false) => {
         try {
             console.log('[fetchData] Iniciando:', { pageNum, query, order, append, isLoadingRef: isLoadingRef.current });
             
@@ -36,7 +38,9 @@ export const useComponentPagination = (componentSearchTerm: string) => {
                 query,
                 pageNum,
                 20,
-                order
+                order,
+                min,
+                max
             );
 
             console.log('[fetchData] Resultado:', { 
@@ -73,9 +77,8 @@ export const useComponentPagination = (componentSearchTerm: string) => {
     };
 
     useEffect(() => {
-        fetchData(0, '', sortOrder);
+        fetchData(0, '', sortMethod, minPrice, maxPrice);
         
-        // Cleanup do timeout ao desmontar
         return () => {
             if (searchTimeoutRef.current) {
                 clearTimeout(searchTimeoutRef.current);
@@ -85,33 +88,36 @@ export const useComponentPagination = (componentSearchTerm: string) => {
 
     const handleLoadMore = useCallback(() => {
         if (!loadingMore && hasMore) {
-            fetchData(page + 1, searchQuery, sortOrder, true);
+            fetchData(page + 1, searchQuery, sortMethod, minPrice, maxPrice, true);
         }
-    }, [page, loadingMore, hasMore, searchQuery, sortOrder]);
+    }, [page, loadingMore, hasMore, searchQuery, sortMethod, minPrice, maxPrice]);
 
     const handleSearch = useCallback((query: string) => {
-        // Atualiza o valor imediatamente para UI responsiva
         setSearchQuery(query);
-        
-        // Limpa timeout anterior
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
-        
-        // Debounce de 300ms para chamada ao banco
         searchTimeoutRef.current = setTimeout(() => {
             setPage(0);
             setHasMore(true);
-            fetchData(0, query, sortOrder, false);
+            fetchData(0, query, sortMethod, minPrice, maxPrice, false);
         }, 300);
-    }, [sortOrder]);
+    }, [sortMethod, minPrice, maxPrice]);
 
-    const handleSortChange = useCallback((order: 'asc' | 'desc') => {
-        setSortOrder(order);
+    const handleSortChange = useCallback((method: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc') => {
+        setSortMethod(method);
         setPage(0);
         setHasMore(true);
-        fetchData(0, searchQuery, order, false);
-    }, [searchQuery]);
+        fetchData(0, searchQuery, method, minPrice, maxPrice, false);
+    }, [searchQuery, minPrice, maxPrice]);
+
+    const handlePriceFilter = useCallback((min?: number, max?: number) => {
+        setMinPrice(min);
+        setMaxPrice(max);
+        setPage(0);
+        setHasMore(true);
+        fetchData(0, searchQuery, sortMethod, min, max, false);
+    }, [searchQuery, sortMethod]);
 
     return {
         data,
@@ -119,10 +125,13 @@ export const useComponentPagination = (componentSearchTerm: string) => {
         loadingMore,
         error,
         hasMore,
-        sortOrder,
+        sortMethod,
         searchQuery,
         handleLoadMore,
         handleSearch,
         handleSortChange,
+        handlePriceFilter,
+        minPrice,
+        maxPrice,
     };
 };
