@@ -1,23 +1,23 @@
 import { StyleSheet } from "react-native";
-import { colors } from "../../styles/colors";
+import { Colors } from "../../styles/colors";
 
 export const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: colors.background,
+        backgroundColor: Colors.background,
         paddingBottom: 40,
     },
     textMain: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: colors.primary,
+        color: Colors.primary,
         marginTop: 40,
     },
     textContent: {
         fontSize: 16,
-        color: colors.textSecondary,
+        color: Colors.textSecondary,
         textAlign: 'center',
     },
     image: {
@@ -28,7 +28,7 @@ export const styles = StyleSheet.create({
     },
     textRegister: {
         marginTop: 20,
-        color: colors.primary,
+        color: Colors.primary,
         fontWeight: 'bold',
         fontSize: 16,
     }

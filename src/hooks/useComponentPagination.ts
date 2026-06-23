@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchComponentsByType, ComponentData } from '../utils/componentHelper';
 
-export const useComponentPagination = (componentSearchTerm: string, defaultSearchQuery: string = '') => {
+export const useComponentPagination = (componentSearchTerm: string, hiddenFilter: string = '') => {
     const [data, setData] = useState<ComponentData[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
-    const [searchQuery, setSearchQuery] = useState(defaultSearchQuery);
+    const [searchQuery, setSearchQuery] = useState('');
     const [sortMethod, setSortMethod] = useState<'price_asc' | 'price_desc' | 'name_asc' | 'name_desc'>('price_desc');
     const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
     const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
@@ -40,7 +40,8 @@ export const useComponentPagination = (componentSearchTerm: string, defaultSearc
                 20,
                 order,
                 min,
-                max
+                max,
+                hiddenFilter
             );
 
             console.log('[fetchData] Resultado:', { 
@@ -77,14 +78,16 @@ export const useComponentPagination = (componentSearchTerm: string, defaultSearc
     };
 
     useEffect(() => {
-        fetchData(0, '', sortMethod, minPrice, maxPrice);
+        setPage(0);
+        setHasMore(true);
+        fetchData(0, searchQuery, sortMethod, minPrice, maxPrice, false);
         
         return () => {
             if (searchTimeoutRef.current) {
                 clearTimeout(searchTimeoutRef.current);
             }
         };
-    }, [componentSearchTerm]);
+    }, [componentSearchTerm, hiddenFilter]);
 
     const handleLoadMore = useCallback(() => {
         if (!loadingMore && hasMore) {

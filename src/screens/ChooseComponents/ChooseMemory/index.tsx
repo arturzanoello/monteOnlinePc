@@ -3,9 +3,46 @@ import { ActivityIndicator, View, Text } from "react-native";
 import { ComponentSearchTerms } from "../../../utils/componentHelper";
 import { useComponentPagination } from "../../../hooks/useComponentPagination";
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState, useEffect } from 'react';
+import { getMotherboardSupportedDdr, getMotherboardSocket } from "../../../utils/hardwareCompatibility";
+
 export function ChooseMemory({ navigation }: any) {
-    const { data, loading, loadingMore, error, hasMore, sortOrder, searchQuery, handleLoadMore, handleSearch, handleSortChange } = 
-        useComponentPagination(ComponentSearchTerms.MEMORY);
+    const [ddrFilter, setDdrFilter] = useState('');
+    const [checkingCompat, setCheckingCompat] = useState(true);
+
+    useEffect(() => {
+        const checkMotherboardCompat = async () => {
+            try {
+                const mbData = await AsyncStorage.getItem('@selected_motherboard');
+                if (mbData) {
+                    const mb = JSON.parse(mbData);
+                    const mbSocket = getMotherboardSocket(mb);
+                    const ddr = getMotherboardSupportedDdr(mb, mbSocket);
+                    if (ddr && ddr !== 'LGA1700_UNDEFINED') {
+                        setDdrFilter(ddr);
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao ler Placa-Mãe', error);
+            } finally {
+                setCheckingCompat(false);
+            }
+        };
+        checkMotherboardCompat();
+    }, []);
+
+    const { data, loading, loadingMore, error, hasMore, sortMethod, searchQuery, handleLoadMore, handleSearch, handleSortChange, handlePriceFilter, minPrice, maxPrice } = 
+        useComponentPagination(ComponentSearchTerms.MEMORY, ddrFilter);
+
+    if (checkingCompat) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#0000ff" />
+                <Text style={{ marginTop: 10 }}>Verificando compatibilidade...</Text>
+            </View>
+        );
+    }
 
     if (loading) {
         return (
@@ -51,10 +88,13 @@ export function ChooseMemory({ navigation }: any) {
             onLoadMore={handleLoadMore}
             onSearch={handleSearch}
             onSortChange={handleSortChange}
-            sortOrder={sortOrder}
+            onPriceFilterChange={handlePriceFilter}
+            sortMethod={sortMethod}
             hasMore={hasMore}
             isLoadingMore={loadingMore}
             searchValue={searchQuery}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
         />
     )
 }

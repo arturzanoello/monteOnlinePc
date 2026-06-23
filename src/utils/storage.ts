@@ -121,8 +121,7 @@ export const saveBuild = async (newBuild: PcBuild) => {
             .from('montagens')
             .insert([{
                 id_usuario: user.id,
-                data_criacao: new Date().toISOString(),
-                categoria: newBuild.category || 'Gamer'
+                data_criacao: new Date().toISOString()
             }])
             .select()
             .single();

@@ -23,8 +23,8 @@ export function About({ navigation }: any) {
 
                     <Text style={styles.heading}>Equipe de Desenvolvimento</Text>
                     <Text style={styles.teamMember}>- Érico (Infra/FCM)</Text>
-                    <Text style={styles.teamMember}>- Lucas (Frontend/UX)</Text>
-                    <Text style={styles.teamMember}>- Equipe Abex V</Text>
+                    <Text style={styles.teamMember}>- Lucas Sehn Klauck (Frontend/UX)</Text>
+                    <Text style={styles.teamMember}>- Artur Zanoello (Backend)</Text>
                 </View>
                 <Button label="Voltar" onPress={() => navigation.goBack()} style={{ marginTop: 40, width: '90%' }}>Voltar</Button>
             </ScrollView>

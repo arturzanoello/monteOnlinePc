@@ -94,6 +94,7 @@ export function SignIn({ navigation }: any) {
                                 <View style={{ width: '90%', marginTop: 20 }}>
                                     <Input
                                         label="Digite seu email"
+                                        autoCapitalize="none"
                                         value={values.email}
                                         onChangeText={(text) => {
                                             handleChange('email')(text);

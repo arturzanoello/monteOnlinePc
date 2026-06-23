@@ -7,6 +7,7 @@ export interface ComponentData {
     description: string;
     shop: string;
     url?: string;
+    especificacoes?: string;
 }
 
 interface FetchOptions {
@@ -23,7 +24,8 @@ export const fetchComponentsByType = async (
     pageSize: number = 20,
     sortMethod: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' = 'price_desc',
     minPrice?: number,
-    maxPrice?: number
+    maxPrice?: number,
+    hiddenFilter: string = ''
 ): Promise<{ data: ComponentData[], hasMore: boolean }> => {
     try {
         const from = page * pageSize;
@@ -40,6 +42,11 @@ export const fetchComponentsByType = async (
         // Se tem busca adicional do usuário, adiciona outro filtro
         if (searchQuery.trim()) {
             query = query.ilike('nome_produto', `%${searchQuery}%`);
+        }
+
+        // Filtro oculto do sistema (compatibilidade de socket/ram)
+        if (hiddenFilter && hiddenFilter.trim()) {
+            query = query.ilike('nome_produto', `%${hiddenFilter}%`);
         }
 
         if (minPrice !== undefined) {
@@ -91,6 +98,7 @@ export const fetchComponentsByType = async (
                     name: item.nome_produto,
                     price: 'N/A',
                     description: formatSpecifications(item.especificacoes),
+                    especificacoes: item.especificacoes,
                     shop: item.loja || 'N/A',
                     url: item.url,
                 };
@@ -107,6 +115,7 @@ export const fetchComponentsByType = async (
                 name: item.nome_produto,
                 price: 'R$ ' + formattedPrice,
                 description: formatSpecifications(item.especificacoes),
+                especificacoes: item.especificacoes,
                 shop: item.loja || 'N/A',
                 url: item.url,
             };

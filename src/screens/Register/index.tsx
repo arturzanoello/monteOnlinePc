@@ -1,6 +1,6 @@
 import { View, Text, Image, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from "react-native";
 import { styles } from "./styles";
-import { Input} from "../../components/Input";
+import { Input, PasswordInput } from "../../components/Input";
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { Button } from "../../components/button";
@@ -103,6 +103,7 @@ export function Register({ navigation }: any) {
                                 <View style={{ width: '90%', marginTop: 20 }}>
                                     <Input
                                         label="Digite seu email"
+                                        autoCapitalize="none"
                                         value={values.email}
                                         onChangeText={(text) => {
                                             handleChange('email')(text);
@@ -119,9 +120,8 @@ export function Register({ navigation }: any) {
                                         </Text>
                                     )}
 
-                                    <Input
+                                    <PasswordInput
                                         label="Digite sua senha"
-                                        secureTextEntry
                                         value={values.password}
                                         onChangeText={(text) => {
                                             handleChange('password')(text);
@@ -138,10 +138,9 @@ export function Register({ navigation }: any) {
                                         </Text>
                                     )}
 
-                                    <Input
+                                    <PasswordInput
                                         label="Confirme sua senha"
                                         value={values.checkPassword}
-                                        secureTextEntry
                                         onChangeText={(text) => {
                                             handleChange('checkPassword')(text);
                                             if (errors.checkPassword) {

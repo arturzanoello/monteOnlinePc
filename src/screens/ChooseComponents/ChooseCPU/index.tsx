@@ -57,7 +57,7 @@ export function ChooseCpu({ navigation }: any) {
             onSearch={handleSearch}
             onSortChange={handleSortChange}
             onPriceFilterChange={handlePriceFilter}
-            sortMethod={sortMethod}
+            sortMethod={sortOrder}
             hasMore={hasMore}
             isLoadingMore={loadingMore}
             searchValue={searchQuery}

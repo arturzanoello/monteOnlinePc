@@ -5,6 +5,7 @@ import { useComponentPagination } from "../../../hooks/useComponentPagination";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect } from 'react';
+import { getCpuSocket } from "../../../utils/hardwareCompatibility";
 
 export function ChooseMotherboard({ navigation }: any) {
     const [socketFilter, setSocketFilter] = useState('');
@@ -16,14 +17,9 @@ export function ChooseMotherboard({ navigation }: any) {
                 const cpuData = await AsyncStorage.getItem('@selected_cpu');
                 if (cpuData) {
                     const cpu = JSON.parse(cpuData);
-                    const name = cpu.name.toLowerCase();
-                    const desc = cpu.description.toLowerCase();
-                    
-                    if (name.includes('am5') || desc.includes('am5') || name.includes('ryzen 7000') || name.includes('ryzen 8000') || name.includes('ryzen 9000')) {
-                        setSocketFilter('AM5');
-                    } else if (name.includes('lga 1700') || desc.includes('lga 1700') || name.includes('intel') || name.includes('core')) {
-                        // Assuming newer intel core processors use LGA 1700
-                        setSocketFilter('1700');
+                    const socket = getCpuSocket(cpu);
+                    if (socket) {
+                        setSocketFilter(socket);
                     }
                 }
             } catch (error) {

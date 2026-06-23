@@ -77,8 +77,50 @@ export function ChooseComponentScreen({
         }
     };
 
+    const validateCompatibility = async (component: any) => {
+        try {
+            const hardwareCompatibility = require('../../../utils/hardwareCompatibility');
+            const validateMotherboard = hardwareCompatibility.validateMotherboard;
+            const validateMemory = hardwareCompatibility.validateMemory;
+            
+            if (componentType === 'motherboard') {
+                const cpuData = await AsyncStorage.getItem('@selected_cpu');
+                if (cpuData) {
+                    const cpu = JSON.parse(cpuData);
+                    if (validateMotherboard) {
+                        const validation = validateMotherboard(cpu, component);
+                        if (!validation.valid) {
+                            return validation.error;
+                        }
+                    }
+                }
+            } else if (componentType === 'memory') {
+                const mbData = await AsyncStorage.getItem('@selected_motherboard');
+                if (mbData) {
+                    const mb = JSON.parse(mbData);
+                    if (validateMemory) {
+                        const validation = validateMemory(mb, component);
+                        if (!validation.valid) {
+                            return validation.error;
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Erro na validação', error);
+        }
+        return null;
+    };
+
     const saveSelectedComponent = async (component: any) => {
         try {
+            const errorMsg = await validateCompatibility(component);
+            if (errorMsg) {
+                const { Alert } = require('react-native');
+                Alert.alert("Incompatibilidade!", errorMsg);
+                return; // Bloqueia o salvamento
+            }
+
             console.log('[ChooseComponent] Salvando componente:', {
                 name: component.name,
                 price: component.price,
