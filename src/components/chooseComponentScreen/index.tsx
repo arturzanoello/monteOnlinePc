@@ -76,66 +76,23 @@ export function ChooseComponentScreen({
             });
             
             if (editingBuildId && editingBuildNumber && editingComponentType === componentType) {
-                // Modo de edição: atualizar o componente na build existente
-                console.log('[ChooseComponent] Atualizando build em modo de edição');
+                // Modo de edição: salvar temporariamente sem persistir no banco
+                console.log('[ChooseComponent] Salvando componente temporariamente para edição');
                 
-                const { getBuilds, updateBuild } = await import('../../utils/storage');
-                const builds = await getBuilds();
+                // Salvar o componente selecionado temporariamente
+                await AsyncStorage.setItem(
+                    `@temp_edited_${componentType}`,
+                    JSON.stringify(component)
+                );
                 
-                // Comparar como string já que o ID pode ser UUID
-                const buildToEdit = builds.find(b => b.id.toString() === editingBuildId);
+                console.log('[ChooseComponent] Navegando de volta para BuildDetails');
                 
-                if (buildToEdit) {
-                    console.log('[ChooseComponent] Build encontrada, atualizando componente');
-                    
-                    // Atualizar o componente específico
-                    buildToEdit.components[componentType] = {
-                        id: component.id,
-                        name: component.name,
-                        price: component.price,
-                        quantity: buildToEdit.components[componentType]?.quantity || 1
-                    };
-                    
-                    // Recalcular o preço total
-                    const parsePrice = (priceString: string): number => {
-                        if (!priceString) return 0;
-                        const cleaned = priceString
-                            .replace('R$', '')
-                            .replace(/\s/g, '')
-                            .replace(/\./g, '')
-                            .replace(',', '.');
-                        return parseFloat(cleaned) || 0;
-                    };
-                    
-                    let newTotal = 0;
-                    Object.values(buildToEdit.components).forEach(comp => {
-                        if (comp) {
-                            newTotal += parsePrice(comp.price) * (comp.quantity || 1);
-                        }
-                    });
-                    
-                    buildToEdit.totalPrice = newTotal;
-                    
-                    // Salvar a build atualizada
-                    const success = await updateBuild(buildToEdit);
-                    console.log('[ChooseComponent] Build atualizada:', success);
-                    
-                    // Limpar flags de edição
-                    await AsyncStorage.removeItem('@editing_build_id');
-                    await AsyncStorage.removeItem('@editing_build_number');
-                    await AsyncStorage.removeItem('@editing_component_type');
-                    
-                    console.log('[ChooseComponent] Navegando de volta para BuildDetails');
-                    
-                    // Voltar para a tela de detalhes com os parâmetros corretos
-                    navigation.navigate('BuildDetails', {
-                        buildId: editingBuildId, // Manter como string/UUID
-                        buildNumber: parseInt(editingBuildNumber)
-                    });
-                    return; // IMPORTANTE: retornar aqui para não executar o código abaixo
-                } else {
-                    console.log('[ChooseComponent] Build não encontrada');
-                }
+                // Voltar para a tela de detalhes com os parâmetros corretos
+                navigation.navigate('BuildDetails', {
+                    buildId: editingBuildId,
+                    buildNumber: parseInt(editingBuildNumber)
+                });
+                return; // IMPORTANTE: retornar aqui para não executar o código abaixo
             }
             
             // Modo normal: salvar para nova montagem

@@ -40,9 +40,34 @@ export function BuildDetails({ navigation, route }: any) {
             const selectedBuild = savedBuilds.find(b => b.id.toString() === buildId.toString());
 
             if (selectedBuild) {
-                setBuild(selectedBuild);
-                // Usa o total que já vem calculado do banco de dados
-                setTotalPrice(selectedBuild.totalPrice);
+                // Criar cópia para permitir edições temporárias
+                const buildCopy = JSON.parse(JSON.stringify(selectedBuild));
+                
+                // Carregar componentes editados temporariamente
+                const componentTypes = ['cpu', 'motherboard', 'memory', 'gpu', 'storage', 'psu', 'case'];
+                for (const type of componentTypes) {
+                    const tempComponent = await AsyncStorage.getItem(`@temp_edited_${type}`);
+                    if (tempComponent) {
+                        const component = JSON.parse(tempComponent);
+                        buildCopy.components[type] = {
+                            id: component.id,
+                            name: component.name,
+                            price: component.price,
+                            quantity: buildCopy.components[type]?.quantity || 1
+                        };
+                    }
+                }
+                
+                // Recalcular total com componentes editados
+                let newTotal = 0;
+                Object.values(buildCopy.components).forEach((comp: any) => {
+                    if (comp) {
+                        newTotal += parsePrice(comp.price) * (comp.quantity || 1);
+                    }
+                });
+                
+                setBuild(buildCopy);
+                setTotalPrice(newTotal);
             }
         } catch (error) {
             console.error("Erro ao carregar montagem:", error);
@@ -54,8 +79,6 @@ export function BuildDetails({ navigation, route }: any) {
 
     useEffect(() => {
         loadBuild();
-        
-        // Listener para recarregar quando voltar de uma tela de edição
         const unsubscribe = navigation.addListener('focus', () => {
             loadBuild();
         });
@@ -93,12 +116,9 @@ export function BuildDetails({ navigation, route }: any) {
         if (!build) return;
 
         try {
-            // Salvar a montagem atual temporariamente
             await AsyncStorage.setItem('@editing_build_id', buildId.toString());
             await AsyncStorage.setItem('@editing_build_number', buildNumber.toString());
             await AsyncStorage.setItem('@editing_component_type', componentType);
-            
-            // Navegar para a tela de seleção do componente
             const screenName = getNextScreen(componentType);
             navigation.navigate(screenName, undefined, { pop: true });
         } catch (error) {
@@ -107,9 +127,45 @@ export function BuildDetails({ navigation, route }: any) {
         }
     };
 
+    const handleSaveChanges = async () => {
+        if (!build) return;
+
+        try {
+            // Atualizar build no banco de dados
+            const { updateBuild } = await import('../../utils/storage');
+            const success = await updateBuild(build);
+
+            if (success) {
+                // Limpar componentes temporários
+                const componentTypes = ['cpu', 'motherboard', 'memory', 'gpu', 'storage', 'psu', 'case'];
+                for (const type of componentTypes) {
+                    await AsyncStorage.removeItem(`@temp_edited_${type}`);
+                }
+                
+                // Limpar flags de edição
+                await AsyncStorage.removeItem('@editing_build_id');
+                await AsyncStorage.removeItem('@editing_build_number');
+                await AsyncStorage.removeItem('@editing_component_type');
+                
+                Alert.alert("Sucesso", "Alterações salvas com sucesso!");
+                navigation.navigate('Build');
+            } else {
+                Alert.alert("Erro", "Não foi possível salvar as alterações");
+            }
+        } catch (error) {
+            console.error("Erro ao salvar alterações:", error);
+            Alert.alert("Erro", "Ocorreu um erro ao salvar as alterações");
+        }
+    };
+
     const handleBack = async () => {
         try {
-            // Limpar flags de edição ao sair
+            // Limpar componentes temporários
+            const componentTypes = ['cpu', 'motherboard', 'memory', 'gpu', 'storage', 'psu', 'case'];
+            for (const type of componentTypes) {
+                await AsyncStorage.removeItem(`@temp_edited_${type}`);
+            }
+            
             await AsyncStorage.removeItem('@editing_build_id');
             await AsyncStorage.removeItem('@editing_build_number');
             await AsyncStorage.removeItem('@editing_component_type');
@@ -175,7 +231,11 @@ export function BuildDetails({ navigation, route }: any) {
 
     return (
         <View style={styles.container}>
-            <ScrollView style={{ width: '90%' }}>
+            <ScrollView 
+                style={{ width: '100%' }}
+                contentContainerStyle={{ alignItems: 'center', paddingHorizontal: '5%' }}
+            >
+                <View style={{ width: '100%', maxWidth: 600 }}>
                 <View style={styles.header}>
                     <Ionicons
                         name="arrow-back-outline"
@@ -226,7 +286,7 @@ export function BuildDetails({ navigation, route }: any) {
                     <View style={styles.buttonContainer}>
                         <Button
                             label="Salvar alterações"
-                            onPress={() => navigation.navigate('Build', undefined, { pop: true })}
+                            onPress={handleSaveChanges}
                         >
                             Salvar alterações
                         </Button>
@@ -235,6 +295,7 @@ export function BuildDetails({ navigation, route }: any) {
                 <Text style={styles.textDelete} onPress={handleDelete}>
                     Deletar Montagem
                 </Text>
+                </View>
             </ScrollView>
         </View>
     );
