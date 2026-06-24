@@ -3,6 +3,7 @@ import { View, Text, ScrollView, SafeAreaView, StyleSheet, Pressable } from "rea
 import { Button } from "../../components/button";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ComponentData } from "../../utils/componentHelper";
+import { ProductPreview } from '../../components/ProductPreview';
 
 export function ComponentDetails({ route, navigation }: any) {
     const { componentData } = route.params as { componentData: ComponentData };
@@ -22,8 +23,8 @@ export function ComponentDetails({ route, navigation }: any) {
 
             <ScrollView contentContainerStyle={styles.container}>
                 <View style={styles.card}>
-                    <View style={styles.iconContainer}>
-                        <Ionicons name="hardware-chip-outline" size={60} color="#2196F3" />
+                    <View style={styles.imageContainer}>
+                        <ProductPreview productUrl={componentData.url} />
                     </View>
 
                     <Text style={styles.componentName}>{componentData.name}</Text>

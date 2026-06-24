@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, Alert } from "react-native";
 import { styles } from "./styles";
 import { Button } from "../button";
-import { Image } from 'expo-image';
 import { Skeleton } from '../Skeleton';
 import { ComponentData } from '../../utils/componentHelper';
 import { addPriceAlert, removePriceAlert, hasPriceAlert } from '../../utils/priceAlertsHelper';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { ProductPreview } from '../ProductPreview';
 
 interface AddComponentsProps {
     componentData: ComponentData;
@@ -17,7 +17,6 @@ interface AddComponentsProps {
 }
 
 export function AddComponents({ componentData, onPress, buttonLabel = "Selecionar", hideSelectButton = false, onAlertChanged }: AddComponentsProps) {
-    const [imageLoading, setImageLoading] = useState(true);
     const [isAlertActive, setIsAlertActive] = useState(false);
 
     useEffect(() => {
@@ -69,15 +68,8 @@ export function AddComponents({ componentData, onPress, buttonLabel = "Seleciona
                 ))}
             </View>
 
-            <View style={{ width: '100%', height: 150, marginVertical: 10, justifyContent: 'center', alignItems: 'center' }}>
-                {imageLoading && <Skeleton width="100%" height={150} style={{ position: 'absolute' }} />}
-                <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1591488320449-011701bb6704?auto=format&fit=crop&w=400&q=80' }} // Placeholder genérico para hardware
-                    style={{ width: '100%', height: 150, borderRadius: 8 }}
-                    contentFit="cover"
-                    cachePolicy="disk"
-                    onLoadEnd={() => setImageLoading(false)}
-                />
+            <View style={{ width: '100%', height: 150, marginVertical: 10 }}>
+                <ProductPreview productUrl={componentData.url} />
             </View>
 
             {!hideSelectButton && onPress && (
