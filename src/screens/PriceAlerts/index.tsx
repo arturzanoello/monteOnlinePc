@@ -1,8 +1,28 @@
-import { View, Text, ScrollView, SafeAreaView, StyleSheet } from "react-native";
+import React, { useState, useCallback } from 'react';
+import { View, Text, ScrollView, SafeAreaView, StyleSheet, ActivityIndicator } from "react-native";
 import { Button } from "../../components/button";
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { getPriceAlerts, PriceAlert } from '../../utils/priceAlertsHelper';
+import { useFocusEffect } from '@react-navigation/native';
+import { AddComponents } from '../../components/addComponents';
 
 export function PriceAlerts({ navigation }: any) {
+    const [alerts, setAlerts] = useState<PriceAlert[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const loadAlerts = async () => {
+        setLoading(true);
+        const data = await getPriceAlerts();
+        setAlerts(data);
+        setLoading(false);
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            loadAlerts();
+        }, [])
+    );
+
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FAFAFA' }}>
             <ScrollView contentContainerStyle={styles.container}>
@@ -11,11 +31,26 @@ export function PriceAlerts({ navigation }: any) {
                     <Text style={styles.title}>Alertas de Preço</Text>
                 </View>
 
-                <View style={styles.emptyState}>
-                    <Ionicons name="notifications-off-outline" size={64} color="#ccc" />
-                    <Text style={styles.emptyText}>Você ainda não tem alertas configurados.</Text>
-                    <Text style={styles.emptySubtext}>Navegue pelas peças e marque "Avisar quando baixar" para receber notificações de queda de preço.</Text>
-                </View>
+                {loading ? (
+                    <ActivityIndicator size="large" color="#0000ff" style={{ marginTop: 50 }} />
+                ) : alerts.length === 0 ? (
+                    <View style={styles.emptyState}>
+                        <Ionicons name="notifications-off-outline" size={64} color="#ccc" />
+                        <Text style={styles.emptyText}>Você ainda não tem alertas configurados.</Text>
+                        <Text style={styles.emptySubtext}>Navegue pelas peças e marque o sino de alerta para receber notificações de queda de preço.</Text>
+                    </View>
+                ) : (
+                    <View style={{ width: '90%' }}>
+                        {alerts.map((alert) => (
+                            <AddComponents
+                                key={alert.id}
+                                componentData={alert}
+                                hideSelectButton={true}
+                                onAlertChanged={loadAlerts} // Recarrega se o usuário desmarcar o sino
+                            />
+                        ))}
+                    </View>
+                )}
 
                 <Button label="Voltar" onPress={() => navigation.goBack()} style={{ marginTop: 40, width: '90%' }}>Voltar</Button>
             </ScrollView>

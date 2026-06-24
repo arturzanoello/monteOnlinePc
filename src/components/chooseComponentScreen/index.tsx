@@ -300,10 +300,7 @@ export function ChooseComponentScreen({
                     {componentsData.map((component) => (
                         <AddComponents
                             key={component.id}
-                            product={component.name}
-                            price={component.price}
-                            description={component.description}
-                            shop={component.shop}
+                            componentData={component}
                             onPress={() => saveSelectedComponent(component)}
                         />
                     ))}

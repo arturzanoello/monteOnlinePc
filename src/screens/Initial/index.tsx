@@ -35,6 +35,14 @@ export function Initial({ navigation }: any) {
                     Montar Computador
                 </Button>
 
+                <Button
+                    label="Ver peças"
+                    style={{ marginTop: 10 }}
+                    onPress={() => navigation.navigate('AllComponents')}
+                >
+                    Ver peças
+                </Button>
+
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '90%', marginTop: 30 }}>
                     <Button label="Alertas" onPress={() => navigation.navigate('PriceAlerts')} style={{ flex: 1, marginRight: 5, backgroundColor: '#FF9800' }}>Alertas</Button>
                     <Button label="Avaliações" onPress={() => navigation.navigate('Reviews')} style={{ flex: 1, marginHorizontal: 5, backgroundColor: '#9C27B0' }}>Avaliações</Button>
