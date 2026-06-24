@@ -5,10 +5,11 @@ import { useComponentPagination } from "../../../hooks/useComponentPagination";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect } from 'react';
-import { getMotherboardSupportedDdr, getMotherboardSocket } from "../../../utils/hardwareCompatibility";
+import { getRamFilterByMotherboard } from "../../../utils/hardwareCompatibility";
 
 export function ChooseMemory({ navigation }: any) {
-    const [ddrFilter, setDdrFilter] = useState('');
+    const [specsKey, setSpecsKey] = useState<string | undefined>(undefined);
+    const [specsFilter, setSpecsFilter] = useState<string | undefined>(undefined);
     const [checkingCompat, setCheckingCompat] = useState(true);
 
     useEffect(() => {
@@ -17,10 +18,13 @@ export function ChooseMemory({ navigation }: any) {
                 const mbData = await AsyncStorage.getItem('@selected_motherboard');
                 if (mbData) {
                     const mb = JSON.parse(mbData);
-                    const mbSocket = getMotherboardSocket(mb);
-                    const ddr = getMotherboardSupportedDdr(mb, mbSocket);
-                    if (ddr && ddr !== 'LGA1700_UNDEFINED') {
-                        setDdrFilter(ddr);
+                    // Usa o ID da placa-mãe para buscar o DDR diretamente no banco
+                    if (mb.id) {
+                        const filter = await getRamFilterByMotherboard(mb.id);
+                        if (filter) {
+                            setSpecsKey(filter.specsKey);       // 'Velocidade'
+                            setSpecsFilter(filter.specsFilter);  // ex: 'DDR5'
+                        }
                     }
                 }
             } catch (error) {
@@ -32,8 +36,8 @@ export function ChooseMemory({ navigation }: any) {
         checkMotherboardCompat();
     }, []);
 
-    const { data, loading, loadingMore, error, hasMore, sortMethod, searchQuery, handleLoadMore, handleSearch, handleSortChange, handlePriceFilter, minPrice, maxPrice } = 
-        useComponentPagination(ComponentSearchTerms.MEMORY, ddrFilter);
+    const { data, loading, loadingMore, error, hasMore, sortMethod, searchQuery, handleLoadMore, handleSearch, handleSortChange, handlePriceFilter, minPrice, maxPrice } =
+        useComponentPagination(ComponentSearchTerms.MEMORY, '', specsKey, specsFilter);
 
     if (checkingCompat) {
         return (
@@ -61,15 +65,16 @@ export function ChooseMemory({ navigation }: any) {
         );
     }
 
-    // Se não tiver dados após carregar
     if (!loading && data.length === 0) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
-                    Nenhuma memória encontrada
+                    Nenhuma memória compatível encontrada
                 </Text>
                 <Text style={{ color: '#666', textAlign: 'center' }}>
-                    Ainda não há memórias cadastradas no banco de dados.
+                    {specsFilter
+                        ? `Não há memórias ${specsFilter} cadastradas.`
+                        : 'Ainda não há memórias cadastradas no banco de dados.'}
                 </Text>
                 <Text style={{ color: '#666', textAlign: 'center', marginTop: 10 }}>
                     Por enquanto, você pode pular esta etapa.

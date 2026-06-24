@@ -25,7 +25,9 @@ export const fetchComponentsByType = async (
     sortMethod: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' = 'price_desc',
     minPrice?: number,
     maxPrice?: number,
-    hiddenFilter: string = ''
+    hiddenFilter: string = '',
+    specsKey?: string,       // Ex: 'Socket do processador'
+    specsFilter?: string     // Ex: 'AM5'
 ): Promise<{ data: ComponentData[], hasMore: boolean }> => {
     try {
         const from = page * pageSize;
@@ -44,9 +46,16 @@ export const fetchComponentsByType = async (
             query = query.ilike('nome_produto', `%${searchQuery}%`);
         }
 
-        // Filtro oculto do sistema (compatibilidade de socket/ram)
+        // Filtro oculto do sistema (compatibilidade por nome — legado)
         if (hiddenFilter && hiddenFilter.trim()) {
             query = query.ilike('nome_produto', `%${hiddenFilter}%`);
+        }
+
+        // Filtro de compatibilidade pela coluna 'especificacoes'
+        // Ex: specsKey='Socket do processador', specsFilter='AM5'
+        // → ilike('%"Socket do processador"%AM5%')
+        if (specsKey && specsFilter) {
+            query = query.ilike('especificacoes', `%"${specsKey}"%${specsFilter}%`);
         }
 
         if (minPrice !== undefined) {

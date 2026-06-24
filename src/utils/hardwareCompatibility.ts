@@ -1,128 +1,184 @@
-export interface Peca {
-    id?: string;
-    name?: string;           // Alterado de nome_produto para name (como no frontend)
-    nome_produto?: string;   // Para retrocompatibilidade
-    description?: string;    // Alterado de especificacoes para description
-    especificacoes?: string; // Para retrocompatibilidade
-}
+import { supabase } from './supabase';
 
-// Utilitário para extrair valores das especificações (JSON ou Regex)
-const extractSpec = (texto: string | null | undefined, keys: string[]): string | null => {
-    if (!texto) return null;
+/**
+ * Busca as especificações de uma peça diretamente no banco pelo ID.
+ * Retorna o JSON bruto da coluna 'especificacoes'.
+ */
+const fetchEspecificacoesById = async (id: string): Promise<Record<string, string> | null> => {
+    const { data, error } = await supabase
+        .from('pecas')
+        .select('especificacoes')
+        .eq('id', id)
+        .single();
+
+    if (error || !data?.especificacoes) return null;
+
     try {
-        const specsObj = JSON.parse(texto);
-        const lowerKeys = keys.map(k => k.toLowerCase().trim());
-        
-        for (const [objKey, objValue] of Object.entries(specsObj)) {
-            if (lowerKeys.includes(objKey.toLowerCase().trim()) && objValue) {
-                return String(objValue).toUpperCase();
-            }
-        }
-    } catch (e) {
-        // Fallback regex se não for JSON válido
-        for (const key of keys) {
-            const regex = new RegExp(`"${key}"\\s*:\\s*"([^"]+)"`, 'i');
-            const match = texto.match(regex);
-            if (match) return match[1].toUpperCase();
-        }
-    }
-    return null;
-};
-
-// Funções para pegar strings de texto de maneira segura
-const getSpecsString = (peca: Peca): string | null => {
-    return peca.description || peca.especificacoes || null;
-};
-
-const getNameString = (peca: Peca): string => {
-    return peca.name || peca.nome_produto || '';
-};
-
-export const getCpuSocket = (cpu: Peca): string | null => {
-    return extractSpec(getSpecsString(cpu), ['Socket', 'Socket do processador']);
-};
-
-export const getMotherboardSocket = (mb: Peca): string | null => {
-    return extractSpec(getSpecsString(mb), ['Socket do processador', 'Socket']);
-};
-
-export const getMotherboardSupportedDdr = (mb: Peca, mbSocket: string | null): string | null => {
-    const specsString = getSpecsString(mb);
-    const memSpec = extractSpec(specsString, ['Suporte de memória', 'Tecnologia de memória RAM', 'Tipo de memória']);
-    const mbName = getNameString(mb).toUpperCase();
-    
-    const isDdr4 = memSpec?.includes('DDR4') || mbName.includes('D4');
-    const isDdr5 = memSpec?.includes('DDR5') || mbName.includes('D5');
-    const isDdr3 = memSpec?.includes('DDR3');
-
-    // Mapeamento rígido por socket
-    if (mbSocket === 'AM5' || mbSocket === 'LGA 1851') return 'DDR5';
-    if (mbSocket === 'AM4' || mbSocket === 'LGA 1200' || mbSocket === 'LGA 1151') return 'DDR4';
-    if (mbSocket === 'AM3' || mbSocket === 'AM3+') return 'DDR3';
-
-    // Para LGA 1700, a placa-mãe dita se é DDR4 ou DDR5
-    if (mbSocket === 'LGA 1700') {
-        if (isDdr5) return 'DDR5';
-        if (isDdr4) return 'DDR4';
-        return 'LGA1700_UNDEFINED'; // Requer info extra
-    }
-
-    return null;
-};
-
-export const getRamDdr = (ram: Peca): string | null => {
-    const specsString = getSpecsString(ram);
-    // Pega a velocidade via JSON/Regex baseado no exemplo do usuário ("Velocidade": "DDR4-3200")
-    const vel = extractSpec(specsString, ['Velocidade', 'Tecnologia da memória', 'Tipo']);
-    const ramName = getNameString(ram).toUpperCase();
-
-    if (!vel) {
-        // Tenta inferir pelo nome se a especificação falhar
-        if (ramName.includes('DDR5')) return 'DDR5';
-        if (ramName.includes('DDR4')) return 'DDR4';
-        if (ramName.includes('DDR3')) return 'DDR3';
+        return typeof data.especificacoes === 'string'
+            ? JSON.parse(data.especificacoes)
+            : data.especificacoes;
+    } catch {
         return null;
     }
-    
-    if (vel.includes('DDR5')) return 'DDR5';
-    if (vel.includes('DDR4')) return 'DDR4';
-    if (vel.includes('DDR3')) return 'DDR3';
+};
+
+/**
+ * Extrai um valor de um objeto de especificações, insensível a maiúsculas/minúsculas.
+ * Ex: extractFromObj(specs, 'Socket') → "AM5"
+ */
+const extractFromObj = (specs: Record<string, string>, key: string): string | null => {
+    const lowerKey = key.toLowerCase().trim();
+    for (const [k, v] of Object.entries(specs)) {
+        if (k.toLowerCase().trim() === lowerKey && v) {
+            return String(v);
+        }
+    }
     return null;
 };
 
-export const validateMotherboard = (cpu: Peca | null, mb: Peca | null): { valid: boolean, error?: string } => {
-    if (!cpu || !mb) return { valid: true };
+/**
+ * DDR exigido por socket (regra de negócio fixa).
+ * Para LGA 1700, retorna null pois a placa-mãe é quem define.
+ */
+const socketToDdr = (socket: string): string | null => {
+    const s = socket.toUpperCase();
+    if (s === 'AM5' || s === 'LGA 1851') return 'DDR5';
+    if (s === 'AM4' || s === 'LGA 1200' || s === 'LGA 1151') return 'DDR4';
+    if (s === 'AM3' || s === 'AM3+') return 'DDR3';
+    return null; // LGA 1700 depende da placa-mãe
+};
 
-    const cpuSocket = getCpuSocket(cpu);
-    const mbSocket = getMotherboardSocket(mb);
+// ─────────────────────────────────────────────────────────────────
+// FUNÇÕES PÚBLICAS — chamadas pelas telas
+// ─────────────────────────────────────────────────────────────────
 
-    if (cpuSocket && mbSocket && cpuSocket !== mbSocket) {
-        return { 
-            valid: false, 
-            error: `Incompatibilidade de Socket!\n\nProcessador: ${cpuSocket}\nPlaca-mãe: ${mbSocket}.`
+/**
+ * Dado o ID do processador selecionado, retorna o filtro para buscar
+ * placas-mãe compatíveis no banco.
+ * O filtro é uma substring que deve aparecer no campo 'especificacoes'.
+ *
+ * Ex: { specsFilter: 'AM5', specsKey: 'Socket do processador' }
+ * → usado como: .ilike('especificacoes', '%"Socket do processador"%AM5%')
+ */
+export const getMotherboardFilterByCpu = async (
+    cpuId: string
+): Promise<{ specsFilter: string; specsKey: string } | null> => {
+    const specs = await fetchEspecificacoesById(cpuId);
+    if (!specs) return null;
+
+    const socket = extractFromObj(specs, 'Socket');
+    if (!socket) return null;
+
+    return {
+        specsKey: 'Socket do processador',
+        specsFilter: socket,
+    };
+};
+
+/**
+ * Dado o ID da placa-mãe selecionada, retorna o filtro para buscar
+ * memórias RAM compatíveis no banco.
+ *
+ * Ex: { specsFilter: 'DDR5', specsKey: 'Velocidade' }
+ * → usado como: .ilike('especificacoes', '%"Velocidade"%DDR5%')
+ */
+export const getRamFilterByMotherboard = async (
+    mbId: string
+): Promise<{ specsFilter: string; specsKey: string } | null> => {
+    const specs = await fetchEspecificacoesById(mbId);
+    if (!specs) return null;
+
+    // Tenta ler o socket da placa-mãe
+    const socket = extractFromObj(specs, 'Socket do processador') || extractFromObj(specs, 'Socket');
+    if (!socket) return null;
+
+    // Determina DDR pelo socket (regra fixa)
+    let ddr = socketToDdr(socket);
+
+    // LGA 1700: a própria placa diz se é DDR4 ou DDR5 nas specs
+    if (!ddr) {
+        for (const v of Object.values(specs)) {
+            const val = String(v).toUpperCase();
+            if (val.includes('DDR5')) { ddr = 'DDR5'; break; }
+            if (val.includes('DDR4')) { ddr = 'DDR4'; break; }
+        }
+    }
+
+    if (!ddr) return null;
+
+    return {
+        specsKey: 'Velocidade',
+        specsFilter: ddr,
+    };
+};
+
+/**
+ * Valida compatibilidade de socket entre CPU e Placa-Mãe.
+ * Usa IDs para buscar as specs diretamente do banco.
+ */
+export const validateMotherboardById = async (
+    cpuId: string,
+    mbId: string
+): Promise<{ valid: boolean; error?: string }> => {
+    const [cpuSpecs, mbSpecs] = await Promise.all([
+        fetchEspecificacoesById(cpuId),
+        fetchEspecificacoesById(mbId),
+    ]);
+
+    if (!cpuSpecs || !mbSpecs) return { valid: true }; // sem dados, não bloqueia
+
+    const cpuSocket = extractFromObj(cpuSpecs, 'Socket');
+    const mbSocket = extractFromObj(mbSpecs, 'Socket do processador') || extractFromObj(mbSpecs, 'Socket');
+
+    if (cpuSocket && mbSocket && cpuSocket.toUpperCase() !== mbSocket.toUpperCase()) {
+        return {
+            valid: false,
+            error: `Incompatibilidade de Socket!\n\nProcessador: ${cpuSocket}\nPlaca-mãe: ${mbSocket}`,
         };
     }
 
     return { valid: true };
 };
 
-export const validateMemory = (mb: Peca | null, ram: Peca | null): { valid: boolean, error?: string } => {
-    if (!mb || !ram) return { valid: true };
+/**
+ * Valida compatibilidade de DDR entre Placa-Mãe e RAM.
+ * Usa IDs para buscar as specs diretamente do banco.
+ */
+export const validateMemoryById = async (
+    mbId: string,
+    ramId: string
+): Promise<{ valid: boolean; error?: string }> => {
+    const [mbSpecs, ramSpecs] = await Promise.all([
+        fetchEspecificacoesById(mbId),
+        fetchEspecificacoesById(ramId),
+    ]);
 
-    const mbSocket = getMotherboardSocket(mb);
-    const mbDdr = getMotherboardSupportedDdr(mb, mbSocket);
-    const ramDdr = getRamDdr(ram);
+    if (!mbSpecs || !ramSpecs) return { valid: true };
 
-    if (mbDdr === 'LGA1700_UNDEFINED') {
-        // Se a placa é 1700 mas não conseguimos ler se é DDR4/5 pela especificação,
-        // logamos um alerta mas permitimos, ou bloqueamos dependendo do rigor desejado.
-        return { valid: true }; 
+    const socket = extractFromObj(mbSpecs, 'Socket do processador') || extractFromObj(mbSpecs, 'Socket');
+    let mbDdr = socket ? socketToDdr(socket) : null;
+
+    // LGA 1700: lê o DDR nas próprias specs da placa-mãe
+    if (!mbDdr) {
+        for (const v of Object.values(mbSpecs)) {
+            const val = String(v).toUpperCase();
+            if (val.includes('DDR5')) { mbDdr = 'DDR5'; break; }
+            if (val.includes('DDR4')) { mbDdr = 'DDR4'; break; }
+        }
     }
 
+    const ramVelocidade = extractFromObj(ramSpecs, 'Velocidade');
+    const ramDdr = ramVelocidade
+        ? ramVelocidade.toUpperCase().includes('DDR5') ? 'DDR5'
+          : ramVelocidade.toUpperCase().includes('DDR4') ? 'DDR4'
+          : ramVelocidade.toUpperCase().includes('DDR3') ? 'DDR3'
+          : null
+        : null;
+
     if (mbDdr && ramDdr && mbDdr !== ramDdr) {
-        return { 
-            valid: false, 
-            error: `Incompatibilidade de Memória!\n\nPlaca-mãe suporta: ${mbDdr}\nMemória escolhida: ${ramDdr}.`
+        return {
+            valid: false,
+            error: `Incompatibilidade de Memória!\n\nPlaca-mãe suporta: ${mbDdr}\nMemória escolhida: ${ramDdr}`,
         };
     }
 

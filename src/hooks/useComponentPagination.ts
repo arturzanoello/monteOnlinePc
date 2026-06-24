@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchComponentsByType, ComponentData } from '../utils/componentHelper';
 
-export const useComponentPagination = (componentSearchTerm: string, hiddenFilter: string = '') => {
+export const useComponentPagination = (
+    componentSearchTerm: string,
+    hiddenFilter: string = '',
+    specsKey?: string,
+    specsFilter?: string
+) => {
     const [data, setData] = useState<ComponentData[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -41,7 +46,9 @@ export const useComponentPagination = (componentSearchTerm: string, hiddenFilter
                 order,
                 min,
                 max,
-                hiddenFilter
+                hiddenFilter,
+                specsKey,
+                specsFilter
             );
 
             console.log('[fetchData] Resultado:', { 
@@ -87,7 +94,7 @@ export const useComponentPagination = (componentSearchTerm: string, hiddenFilter
                 clearTimeout(searchTimeoutRef.current);
             }
         };
-    }, [componentSearchTerm, hiddenFilter]);
+    }, [componentSearchTerm, hiddenFilter, specsKey, specsFilter]);
 
     const handleLoadMore = useCallback(() => {
         if (!loadingMore && hasMore) {

@@ -5,6 +5,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AddComponents } from "../addComponents";
 import Feather from "@expo/vector-icons/Feather";
+import { validateMotherboardById, validateMemoryById } from '../../utils/hardwareCompatibility';
 
 type ComponentType = 'cpu' | 'motherboard' | 'memory' | 'gpu' | 'storage' | 'psu' | 'case';
 
@@ -79,30 +80,22 @@ export function ChooseComponentScreen({
 
     const validateCompatibility = async (component: any) => {
         try {
-            const hardwareCompatibility = require('../../../utils/hardwareCompatibility');
-            const validateMotherboard = hardwareCompatibility.validateMotherboard;
-            const validateMemory = hardwareCompatibility.validateMemory;
-            
             if (componentType === 'motherboard') {
                 const cpuData = await AsyncStorage.getItem('@selected_cpu');
                 if (cpuData) {
                     const cpu = JSON.parse(cpuData);
-                    if (validateMotherboard) {
-                        const validation = validateMotherboard(cpu, component);
-                        if (!validation.valid) {
-                            return validation.error;
-                        }
+                    if (cpu.id && component.id) {
+                        const validation = await validateMotherboardById(cpu.id, component.id);
+                        if (!validation.valid) return validation.error;
                     }
                 }
             } else if (componentType === 'memory') {
                 const mbData = await AsyncStorage.getItem('@selected_motherboard');
                 if (mbData) {
                     const mb = JSON.parse(mbData);
-                    if (validateMemory) {
-                        const validation = validateMemory(mb, component);
-                        if (!validation.valid) {
-                            return validation.error;
-                        }
+                    if (mb.id && component.id) {
+                        const validation = await validateMemoryById(mb.id, component.id);
+                        if (!validation.valid) return validation.error;
                     }
                 }
             }

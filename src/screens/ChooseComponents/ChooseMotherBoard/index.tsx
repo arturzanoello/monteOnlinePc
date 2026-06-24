@@ -5,10 +5,11 @@ import { useComponentPagination } from "../../../hooks/useComponentPagination";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect } from 'react';
-import { getCpuSocket } from "../../../utils/hardwareCompatibility";
+import { getMotherboardFilterByCpu } from "../../../utils/hardwareCompatibility";
 
 export function ChooseMotherboard({ navigation }: any) {
-    const [socketFilter, setSocketFilter] = useState('');
+    const [specsKey, setSpecsKey] = useState<string | undefined>(undefined);
+    const [specsFilter, setSpecsFilter] = useState<string | undefined>(undefined);
     const [checkingSocket, setCheckingSocket] = useState(true);
 
     useEffect(() => {
@@ -17,9 +18,13 @@ export function ChooseMotherboard({ navigation }: any) {
                 const cpuData = await AsyncStorage.getItem('@selected_cpu');
                 if (cpuData) {
                     const cpu = JSON.parse(cpuData);
-                    const socket = getCpuSocket(cpu);
-                    if (socket) {
-                        setSocketFilter(socket);
+                    // Usa o ID da peça para buscar o socket diretamente no banco
+                    if (cpu.id) {
+                        const filter = await getMotherboardFilterByCpu(cpu.id);
+                        if (filter) {
+                            setSpecsKey(filter.specsKey);       // 'Socket do processador'
+                            setSpecsFilter(filter.specsFilter);  // ex: 'LGA 1700'
+                        }
                     }
                 }
             } catch (error) {
@@ -31,8 +36,8 @@ export function ChooseMotherboard({ navigation }: any) {
         checkCpuSocket();
     }, []);
 
-    const { data, loading, loadingMore, error, hasMore, sortMethod, searchQuery, handleLoadMore, handleSearch, handleSortChange, handlePriceFilter, minPrice, maxPrice } = 
-        useComponentPagination(ComponentSearchTerms.MOTHERBOARD, socketFilter);
+    const { data, loading, loadingMore, error, hasMore, sortMethod, searchQuery, handleLoadMore, handleSearch, handleSortChange, handlePriceFilter, minPrice, maxPrice } =
+        useComponentPagination(ComponentSearchTerms.MOTHERBOARD, '', specsKey, specsFilter);
 
     if (checkingSocket) {
         return (
@@ -42,13 +47,6 @@ export function ChooseMotherboard({ navigation }: any) {
             </View>
         );
     }
-
-    console.log('[ChooseMotherboard] Estado:', { 
-        dataLength: data.length, 
-        loading, 
-        error,
-        searchTerm: ComponentSearchTerms.MOTHERBOARD
-    });
 
     if (loading) {
         return (
@@ -67,15 +65,16 @@ export function ChooseMotherboard({ navigation }: any) {
         );
     }
 
-    // Se não tiver dados após carregar
     if (!loading && data.length === 0) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
-                    Nenhuma placa-mãe encontrada
+                    Nenhuma placa-mãe compatível encontrada
                 </Text>
                 <Text style={{ color: '#666', textAlign: 'center' }}>
-                    Ainda não há placas-mãe cadastradas no banco de dados.
+                    {specsFilter
+                        ? `Não há placas-mãe com socket "${specsFilter}" cadastradas.`
+                        : 'Ainda não há placas-mãe cadastradas no banco de dados.'}
                 </Text>
                 <Text style={{ color: '#666', textAlign: 'center', marginTop: 10 }}>
                     Por enquanto, você pode pular esta etapa.
