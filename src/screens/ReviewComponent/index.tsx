@@ -33,13 +33,13 @@ export function ReviewComponent({ route, navigation }: any) {
 
         try {
             const { error } = await supabase
-                .from('avaliacoes')
+                .from('reviews')
                 .insert([
                     {
-                        peca: componentId,
+                        pecaID: componentId,
                         nota: rating,
                         comentario: comment.trim() || null,
-                        usuario: userId // Pode ser null se o usuário for anônimo/deslogado
+                        usuarioID: userId // Pode ser null se o usuário for anônimo/deslogado
                     }
                 ]);
 

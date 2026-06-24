@@ -22,6 +22,7 @@ import { PriceAlerts } from '../screens/PriceAlerts';
 import { Reviews } from '../screens/Reviews';
 import { AllComponents } from '../screens/AllComponents';
 import { ReviewComponent } from '../screens/ReviewComponent';
+import { ComponentDetails } from '../screens/ComponentDetails';
 
 const Stack = createStackNavigator();
 
@@ -50,6 +51,7 @@ export function StackRoutes() {
       <Stack.Screen name='Reviews' component={Reviews} />
       <Stack.Screen name='AllComponents' component={AllComponents} />
       <Stack.Screen name='ReviewComponent' component={ReviewComponent} />
+      <Stack.Screen name='ComponentDetails' component={ComponentDetails} />
     </Stack.Navigator>
   );
 }

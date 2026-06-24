@@ -108,11 +108,15 @@ export function AllComponents({ navigation }: any) {
                 ) : (
                     <View style={{ width: '90%' }}>
                         {data.map((component) => (
-                            <AddComponents
-                                key={component.id}
-                                componentData={component}
-                                hideSelectButton={true} // Esconde o botão selecionar
-                            />
+                            <Pressable 
+                                key={component.id} 
+                                onPress={() => navigation.navigate('ComponentDetails', { componentData: component })}
+                            >
+                                <AddComponents
+                                    componentData={component}
+                                    hideSelectButton={true} // Esconde o botão selecionar
+                                />
+                            </Pressable>
                         ))}
                     </View>
                 )}

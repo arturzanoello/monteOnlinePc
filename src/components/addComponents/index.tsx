@@ -48,12 +48,12 @@ export function AddComponents({ componentData, onPress, buttonLabel = "Seleciona
         <View style={styles.container}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
                 <Text style={[styles.textMain, { flex: 1, marginRight: 10 }]}>{componentData.name}</Text>
-                
+
                 <Pressable onPress={toggleAlert} style={{ padding: 5 }}>
-                    <Ionicons 
-                        name={isAlertActive ? "notifications" : "notifications-outline"} 
-                        size={24} 
-                        color={isAlertActive ? "#FF9800" : "#666"} 
+                    <Ionicons
+                        name={isAlertActive ? "notifications" : "notifications-outline"}
+                        size={24}
+                        color={isAlertActive ? "#FF9800" : "#666"}
                     />
                 </Pressable>
             </View>
