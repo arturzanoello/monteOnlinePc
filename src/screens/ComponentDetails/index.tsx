@@ -22,26 +22,31 @@ export function ComponentDetails({ route, navigation }: any) {
             </View>
 
             <ScrollView contentContainerStyle={styles.container}>
-                <View style={styles.card}>
+                <View style={styles.imageCard}>
                     <View style={styles.imageContainer}>
                         <ProductPreview productUrl={componentData.url} />
                     </View>
+                </View>
 
+                <View style={styles.infoCard}>
                     <Text style={styles.componentName}>{componentData.name}</Text>
 
                     <View style={styles.priceContainer}>
-                        <Text style={styles.priceLabel}>Preço atual (Pix)</Text>
+                        <Text style={styles.priceLabel}>Melhor Preço Encontrado (Pix)</Text>
                         <Text style={styles.priceValue}>{componentData.price}</Text>
                     </View>
 
                     <View style={styles.infoRow}>
-                        <Ionicons name="storefront-outline" size={20} color="#666" />
-                        <Text style={styles.shopText}>Loja: {componentData.shop}</Text>
+                        <Ionicons name="storefront" size={20} color="#666" />
+                        <Text style={styles.shopText}>Vendido por: <Text style={{ fontWeight: 'bold' }}>{componentData.shop}</Text></Text>
                     </View>
                 </View>
 
                 <View style={styles.specsCard}>
-                    <Text style={styles.specsTitle}>Especificações Técnicas</Text>
+                    <View style={styles.specsHeader}>
+                        <Ionicons name="list" size={24} color="#333" />
+                        <Text style={styles.specsTitle}>Especificações Técnicas</Text>
+                    </View>
                     {componentData.description ? (
                         <Text style={styles.specsText}>{componentData.description}</Text>
                     ) : (
@@ -49,23 +54,16 @@ export function ComponentDetails({ route, navigation }: any) {
                     )}
                 </View>
 
-                <View style={styles.actionsContainer}>
+                <View style={{ ...styles.actionsContainer, flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                     <Button
                         label="Avaliar Peça"
                         onPress={() => navigation.navigate('ReviewComponent', {
                             componentId: componentData.id,
                             componentName: componentData.name
                         })}
-                        style={{ backgroundColor: '#f59e0b', marginBottom: 15 }}
+                        style={{ flex: 1, backgroundColor: '#f59e0b', marginBottom: 15 }}
                     >
                         Avaliar Peça
-                    </Button>
-
-                    <Button
-                        label="Voltar"
-                        onPress={() => navigation.goBack()}
-                    >
-                        Voltar
                     </Button>
                 </View>
             </ScrollView>
@@ -103,69 +101,101 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         marginBottom: 20,
     },
-    iconContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: '#E3F2FD',
+    imageCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        padding: 10,
+        alignItems: 'center',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        marginBottom: 20,
+    },
+    imageContainer: {
+        width: '100%',
+        height: 250,
+        backgroundColor: '#FFF',
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 15,
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    infoCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        padding: 24,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        marginBottom: 20,
     },
     componentName: {
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: 'bold',
-        textAlign: 'center',
-        color: '#333',
-        marginBottom: 15,
+        color: '#1A1A1A',
+        marginBottom: 20,
+        lineHeight: 30,
     },
     priceContainer: {
-        alignItems: 'center',
-        backgroundColor: '#F5F5F5',
-        padding: 15,
+        backgroundColor: '#F8F9FA',
+        padding: 16,
         borderRadius: 12,
         width: '100%',
-        marginBottom: 15,
+        marginBottom: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: '#4CAF50',
     },
     priceLabel: {
         fontSize: 14,
         color: '#666',
         marginBottom: 4,
+        fontWeight: '600',
     },
     priceValue: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: 'bold',
         color: '#4CAF50',
     },
     infoRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 5,
+        backgroundColor: '#F8F9FA',
+        padding: 12,
+        borderRadius: 12,
     },
     shopText: {
         fontSize: 16,
-        color: '#555',
+        color: '#444',
         marginLeft: 8,
     },
     specsCard: {
         backgroundColor: '#FFFFFF',
         borderRadius: 16,
-        padding: 20,
+        padding: 24,
         elevation: 2,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 2,
+        shadowRadius: 4,
         marginBottom: 20,
+    },
+    specsHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
+        paddingBottom: 12,
     },
     specsTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#EEE',
-        paddingBottom: 10,
+        color: '#1A1A1A',
+        marginLeft: 8,
     },
     specsText: {
         fontSize: 15,
