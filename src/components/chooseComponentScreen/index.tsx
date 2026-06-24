@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, Pressable, ScrollView, TextInput, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput, ActivityIndicator, SafeAreaView, Modal, TouchableOpacity } from "react-native";
 import { styles } from "./styles";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -54,6 +54,7 @@ export function ChooseComponentScreen({
     const [currentSort, setCurrentSort] = useState(sortMethod);
     const [localMinPrice, setLocalMinPrice] = useState(minPrice?.toString() || '');
     const [localMaxPrice, setLocalMaxPrice] = useState(maxPrice?.toString() || '');
+    const [modalFiltros, setModalFiltros] = useState(false);
 
     const handleSortToggle = () => {
         const orderCycle = {
@@ -118,12 +119,12 @@ export function ChooseComponentScreen({
                 price: component.price,
                 priceType: typeof component.price
             });
-            
+
             // Verificar se está em modo de edição
             const editingBuildId = await AsyncStorage.getItem('@editing_build_id');
             const editingBuildNumber = await AsyncStorage.getItem('@editing_build_number');
             const editingComponentType = await AsyncStorage.getItem('@editing_component_type');
-            
+
             console.log('[ChooseComponent] Modo de edição:', {
                 editingBuildId,
                 editingBuildNumber,
@@ -131,19 +132,19 @@ export function ChooseComponentScreen({
                 currentComponentType: componentType,
                 isEditing: editingBuildId && editingComponentType === componentType
             });
-            
+
             if (editingBuildId && editingBuildNumber && editingComponentType === componentType) {
                 // Modo de edição: salvar temporariamente sem persistir no banco
                 console.log('[ChooseComponent] Salvando componente temporariamente para edição');
-                
+
                 // Salvar o componente selecionado temporariamente
                 await AsyncStorage.setItem(
                     `@temp_edited_${componentType}`,
                     JSON.stringify(component)
                 );
-                
+
                 console.log('[ChooseComponent] Navegando de volta para BuildDetails');
-                
+
                 // Voltar para a tela de detalhes com os parâmetros corretos
                 navigation.navigate('BuildDetails', {
                     buildId: editingBuildId,
@@ -151,15 +152,15 @@ export function ChooseComponentScreen({
                 });
                 return; // IMPORTANTE: retornar aqui para não executar o código abaixo
             }
-            
+
             // Modo normal: salvar para nova montagem
             console.log('[ChooseComponent] Modo normal, salvando para nova montagem');
             await AsyncStorage.setItem(
                 `@selected_${componentType}`,
                 JSON.stringify(component)
             );
-            navigation.navigate(nextScreen, undefined, 
-                { pop: true}
+            navigation.navigate(nextScreen, undefined,
+                { pop: true }
             );
         } catch (e) {
             console.error(`Erro ao salvar ${componentType}:`, e);
@@ -170,7 +171,7 @@ export function ChooseComponentScreen({
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
         // Carrega mais quando estiver a 300px do final (antecipado)
         const paddingToBottom = 300;
-        
+
         if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom) {
             if (hasMore && !isLoadingMore && onLoadMore) {
                 onLoadMore();
@@ -193,19 +194,19 @@ export function ChooseComponentScreen({
     }, [sortMethod]);
 
     return (
-        <View style={styles.container}>
-            <View style={{ width: '90%', alignSelf: 'center', marginTop: 10 }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FAFAFA' }}>
+            <View style={styles.container}>
+                <View style={{ width: '90%', alignSelf: 'center' }}>
                     <View style={styles.header}>
                         <Ionicons
                             name="arrow-back-outline"
                             size={32}
                             color="black"
                             onPress={() => navigation.goBack()}
+                            style={{ position: 'absolute', left: 20, zIndex: 1 }}
                         />
-                        <Feather name="monitor" size={32} color="black" />
+                        <Text style={styles.title}>{title}</Text>
                     </View>
-
-                    <Text style={styles.textMain}>{title}</Text>
 
                     {/* Campo de busca */}
                     <View style={{ marginVertical: 15 }}>
@@ -236,96 +237,145 @@ export function ChooseComponentScreen({
                                     <Ionicons name="close-circle" size={20} color="#666" />
                                 </Pressable>
                             )}
+                            <Pressable onPress={() => setModalFiltros(true)} style={{ marginLeft: searchValue.length > 0 ? 10 : 0 }}>
+                                <Ionicons name="filter" size={20} color="#666" />
+                            </Pressable>
                         </View>
-                    </View>
-
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
-                        <View style={{ flexDirection: 'row', flex: 1, marginRight: 10 }}>
-                            <TextInput
-                                style={{ flex: 1, borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, padding: 8, marginRight: 5 }}
-                                placeholder="Min (R$)"
-                                keyboardType="numeric"
-                                value={localMinPrice}
-                                onChangeText={setLocalMinPrice}
-                                onBlur={applyPriceFilter}
-                            />
-                            <TextInput
-                                style={{ flex: 1, borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, padding: 8 }}
-                                placeholder="Max (R$)"
-                                keyboardType="numeric"
-                                value={localMaxPrice}
-                                onChangeText={setLocalMaxPrice}
-                                onBlur={applyPriceFilter}
-                            />
-                        </View>
-
-                        <Pressable
-                            style={styles.priceButton}
-                            onPress={handleSortToggle}
-                        >
-                            {currentSort === 'price_desc' && (
-                                <>
-                                    <Text style={styles.priceButtonText}>Maior Preço</Text>
-                                    <Ionicons name="arrow-up" size={20} color="black" />
-                                </>
-                            )}
-                            {currentSort === 'price_asc' && (
-                                <>
-                                    <Text style={styles.priceButtonText}>Menor Preço</Text>
-                                    <Ionicons name="arrow-down" size={20} color="black" />
-                                </>
-                            )}
-                            {currentSort === 'none' && (
-                                <>
-                                    <Text style={styles.priceButtonText}>Sem Ordenação</Text>
-                                    <Ionicons name="filter-outline" size={20} color="black" />
-                                </>
-                            )}
-                        </Pressable>
                     </View>
                 </View>
 
-            <ScrollView 
-                style={{ width: '100%' }}
-                contentContainerStyle={{ alignItems: 'center', paddingBottom: 40 }}
-                onScroll={handleScroll}
-                scrollEventThrottle={100}
+                <ScrollView
+                    style={{ width: '100%' }}
+                    contentContainerStyle={{ alignItems: 'center', paddingBottom: 40 }}
+                    onScroll={handleScroll}
+                    scrollEventThrottle={100}
+                >
+                    <View style={{ width: '90%' }}>
+                        {componentsData.map((component) => (
+                            <AddComponents
+                                key={component.id}
+                                componentData={component}
+                                onPress={() => saveSelectedComponent(component)}
+                            />
+                        ))}
+
+                        {/* Loading indicator para carregar mais */}
+                        {isLoadingMore && (
+                            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+                                <ActivityIndicator size="small" color="#0000ff" />
+                                <Text style={{ marginTop: 10, color: '#666' }}>Carregando mais...</Text>
+                            </View>
+                        )}
+
+                        {/* Mensagem quando não há mais itens */}
+                        {!hasMore && componentsData.length > 0 && (
+                            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+                                <Text style={{ color: '#666', fontSize: 14 }}>Todos os itens foram carregados</Text>
+                            </View>
+                        )}
+
+                        {/* Mensagem quando não há resultados */}
+                        {componentsData.length === 0 && !isLoadingMore && (
+                            <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+                                <Ionicons name="search-outline" size={48} color="#ccc" />
+                                <Text style={{ color: '#999', fontSize: 16, marginTop: 10 }}>Nenhum produto encontrado</Text>
+                            </View>
+                        )}
+
+                        <View style={{ marginBottom: 50 }} />
+                    </View>
+                </ScrollView>
+            </View>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalFiltros}
+                onRequestClose={() => setModalFiltros(false)}
             >
-                <View style={{ width: '90%' }}>
-                    {componentsData.map((component) => (
-                        <AddComponents
-                            key={component.id}
-                            componentData={component}
-                            onPress={() => saveSelectedComponent(component)}
-                        />
-                    ))}
-
-                    {/* Loading indicator para carregar mais */}
-                    {isLoadingMore && (
-                        <View style={{ paddingVertical: 20, alignItems: 'center' }}>
-                            <ActivityIndicator size="small" color="#0000ff" />
-                            <Text style={{ marginTop: 10, color: '#666' }}>Carregando mais...</Text>
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+                    <View style={{ 
+                        backgroundColor: '#FFF', 
+                        borderTopLeftRadius: 24, 
+                        borderTopRightRadius: 24, 
+                        padding: 24,
+                        maxHeight: '80%'
+                    }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Filtros e Ordenação</Text>
+                            <Pressable onPress={() => setModalFiltros(false)}>
+                                <Ionicons name="close-circle-outline" size={28} color="#666" />
+                            </Pressable>
                         </View>
-                    )}
 
-                    {/* Mensagem quando não há mais itens */}
-                    {!hasMore && componentsData.length > 0 && (
-                        <View style={{ paddingVertical: 20, alignItems: 'center' }}>
-                            <Text style={{ color: '#666', fontSize: 14 }}>Todos os itens foram carregados</Text>
-                        </View>
-                    )}
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            {/* Ordenação */}
+                            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 10 }}>Ordenar por</Text>
+                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20 }}>
+                                {[
+                                    { id: 'price_asc', label: 'Menor Preço' },
+                                    { id: 'price_desc', label: 'Maior Preço' },
+                                    { id: 'name_asc', label: 'A-Z' },
+                                    { id: 'name_desc', label: 'Z-A' },
+                                    { id: 'none', label: 'Sem Ordenação' }
+                                ].map(option => (
+                                    <Pressable
+                                        key={option.id}
+                                        onPress={() => {
+                                            setCurrentSort(option.id as any);
+                                            if (onSortChange) onSortChange(option.id as any);
+                                        }}
+                                        style={{
+                                            paddingHorizontal: 16,
+                                            paddingVertical: 10,
+                                            marginRight: 10,
+                                            marginBottom: 10,
+                                            borderRadius: 20,
+                                            borderWidth: 1,
+                                            borderColor: currentSort === option.id ? '#000' : '#DDD',
+                                            backgroundColor: currentSort === option.id ? '#000' : '#FFF',
+                                        }}
+                                    >
+                                        <Text style={{
+                                            color: currentSort === option.id ? '#FFF' : '#333',
+                                            fontWeight: '600'
+                                        }}>{option.label}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
 
-                    {/* Mensagem quando não há resultados */}
-                    {componentsData.length === 0 && !isLoadingMore && (
-                        <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-                            <Ionicons name="search-outline" size={48} color="#ccc" />
-                            <Text style={{ color: '#999', fontSize: 16, marginTop: 10 }}>Nenhum produto encontrado</Text>
-                        </View>
-                    )}
-
-                    <View style={{ marginBottom: 50 }} />
+                            {/* Faixa de Preço */}
+                            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 10 }}>Faixa de Preço (Pix)</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 }}>
+                                <TextInput
+                                    style={{ flex: 1, borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 12, padding: 12, marginRight: 10, fontSize: 16 }}
+                                    placeholder="Min (R$)"
+                                    keyboardType="numeric"
+                                    value={localMinPrice}
+                                    onChangeText={setLocalMinPrice}
+                                />
+                                <TextInput
+                                    style={{ flex: 1, borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 12, padding: 12, fontSize: 16 }}
+                                    placeholder="Max (R$)"
+                                    keyboardType="numeric"
+                                    value={localMaxPrice}
+                                    onChangeText={setLocalMaxPrice}
+                                />
+                            </View>
+                        </ScrollView>
+                        
+                        <TouchableOpacity 
+                            style={{ backgroundColor: '#000', padding: 15, borderRadius: 12, alignItems: 'center' }}
+                            onPress={() => {
+                                applyPriceFilter();
+                                setModalFiltros(false);
+                            }}
+                        >
+                            <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>Aplicar Filtros</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </ScrollView>
-        </View>
+            </Modal>
+        </SafeAreaView>
     );
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, SafeAreaView, ActivityIndicator, Pressable, TextInput, Modal, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, SafeAreaView, ActivityIndicator, Pressable, TextInput, Modal, TouchableOpacity, StyleSheet } from "react-native";
 import { AddComponents } from "../../components/addComponents";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ComponentSearchTerms } from "../../utils/componentHelper";
@@ -37,10 +37,16 @@ export function AllComponents({ navigation }: any) {
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FAFAFA' }}>
-            <View style={{ paddingHorizontal: '5%', paddingTop: 20 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                    <Ionicons name="arrow-back-outline" size={32} color="black" onPress={() => navigation.goBack()} />
-                    <Text style={{ fontSize: 24, fontWeight: 'bold', marginLeft: 15 }}>Todas as Peças</Text>
+            <View style={{ paddingHorizontal: '5%' }}>
+                <View style={styles.header}>
+                    <Ionicons
+                        name="arrow-back-outline"
+                        size={32}
+                        color="black"
+                        onPress={() => navigation.goBack()}
+                        style={{ position: 'absolute', left: 20, zIndex: 1 }}
+                    />
+                    <Text style={styles.title}>Todas as Peças</Text>
                 </View>
 
                 {/* Busca */}
@@ -113,10 +119,10 @@ export function AllComponents({ navigation }: any) {
                 onRequestClose={() => setModalFiltros(false)}
             >
                 <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
-                    <View style={{ 
-                        backgroundColor: '#FFF', 
-                        borderTopLeftRadius: 24, 
-                        borderTopRightRadius: 24, 
+                    <View style={{
+                        backgroundColor: '#FFF',
+                        borderTopLeftRadius: 24,
+                        borderTopRightRadius: 24,
                         padding: 24,
                         maxHeight: '80%'
                     }}>
@@ -186,8 +192,8 @@ export function AllComponents({ navigation }: any) {
                                 ))}
                             </View>
                         </ScrollView>
-                        
-                        <TouchableOpacity 
+
+                        <TouchableOpacity
                             style={{ backgroundColor: '#000', padding: 15, borderRadius: 12, alignItems: 'center' }}
                             onPress={() => setModalFiltros(false)}
                         >
@@ -199,3 +205,20 @@ export function AllComponents({ navigation }: any) {
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 20,
+        backgroundColor: '#FAFAFA',
+        position: 'relative',
+    },
+    title: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#1A1A1A'
+    },
+
+});

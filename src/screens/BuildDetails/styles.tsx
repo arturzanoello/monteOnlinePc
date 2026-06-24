@@ -9,15 +9,16 @@ export const styles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 20,
+        backgroundColor: '#FAFAFA',
+        position: 'relative',
     },
-    textMain: {
+    title: {
+        fontSize: 22,
         fontWeight: 'bold',
-        fontSize: 35,
-        marginBottom: 40,
-        marginTop: 30,
-        textAlign: 'center'
+        color: '#1A1A1A'
     },
     content: {
         padding: 16,
@@ -52,6 +53,7 @@ export const styles = StyleSheet.create({
     },
     componentInfo: {
         flex: 1,
+        marginLeft: 12,
         marginRight: 12,
     },
     componentType: {

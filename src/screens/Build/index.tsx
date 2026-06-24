@@ -1,10 +1,11 @@
-import { View, Text, ScrollView, ActivityIndicator, Alert } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator, Alert, SafeAreaView } from "react-native";
 import { styles } from "./styles";
 import { AddBuild } from "../../components/addBuild";
 import { Button } from "../../components/button";
 import { useEffect, useState } from "react";
 import { getBuilds, PcBuild, deleteBuild } from "../../utils/storage";
 import { useIsFocused } from "@react-navigation/native";
+import { Ionicons } from '@expo/vector-icons';
 
 export function Build({ navigation }: any) {
     const [builds, setBuilds] = useState<PcBuild[]>([]);
@@ -72,8 +73,17 @@ export function Build({ navigation }: any) {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.textMain}>Minhas Montagens</Text>
+        <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+                <Ionicons
+                    name="arrow-back-outline"
+                    size={32}
+                    color="black"
+                    onPress={() => navigation.goBack()}
+                    style={{ position: 'absolute', left: 20, zIndex: 1 }}
+                />
+                <Text style={styles.title}>Minhas Montagens</Text>
+            </View>
 
             {loading ? (
                 <View style={styles.loadingContainer}>
@@ -84,13 +94,13 @@ export function Build({ navigation }: any) {
                     {builds.length === 0 ? (
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyText}>Nenhuma montagem salva</Text>
-                            <Button                   
+                            <Button
                                 label="Criar primeira montagem"
                                 onPress={() => navigation.navigate('ChooseCpu', undefined, { pop: true })}>
                                 Criar primeira montagem
                             </Button>
-             
-                         
+
+
                         </View>
                     ) : (
                         builds.map((build, index) => {
@@ -111,14 +121,6 @@ export function Build({ navigation }: any) {
                     )}
                 </ScrollView>
             )}
-
-            <View style={styles.footer}>
-                <Button
-                    label="Voltar"
-                    onPress={() => navigation.navigate('Initial', undefined, { pop: true })}>
-                    Voltar
-                </Button>
-            </View>
-        </View>
+        </SafeAreaView>
     );
 }

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, SafeAreaView, StyleSheet, ActivityIndicator, Switch } from "react-native";
+import React, { useState, useEffect, useMemo } from "react";
+import { View, Text, ScrollView, SafeAreaView, StyleSheet, ActivityIndicator, Switch, TextInput, Pressable, Modal, TouchableOpacity } from "react-native";
 import { Button } from "../../components/button";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { supabase } from '../../utils/supabase';
@@ -16,8 +16,13 @@ interface Review {
 export function Reviews({ navigation }: any) {
     const [reviews, setReviews] = useState<Review[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [showOnlyUser, setShowOnlyUser] = useState(false);
     const [userId, setUserId] = useState<string | null>(null);
+
+    // Filtros e busca
+    const [searchQuery, setSearchQuery] = useState('');
+    const [modalFiltros, setModalFiltros] = useState(false);
+    const [sortMethod, setSortMethod] = useState<'recentes' | 'maior_nota' | 'menor_nota'>('recentes');
+    const [showOnlyUser, setShowOnlyUser] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -38,25 +43,22 @@ export function Reviews({ navigation }: any) {
                     id,
                     nota,
                     comentario,
+                    "usuarioID",
                     pecas (nome_produto)
                 `)
                 .order('id', { ascending: false });
 
-            if (showOnlyUser && userId) {
-                query = query.eq('usuarioID', userId);
-            }
-
+            // Busca tudo e filtra no front
             const { data, error } = await query;
 
             if (error) throw error;
             
-            // Format data
             if (data) {
                 const formatted = data.map(item => ({
                     id: item.id,
                     nota: item.nota,
                     comentario: item.comentario,
-                    // Verifica se o array vem vazio caso a FK não ache ou se vem objeto direto
+                    usuarioID: item.usuarioID,
                     pecas: Array.isArray(item.pecas) ? item.pecas[0] : (item.pecas || { nome_produto: 'Peça Desconhecida' })
                 }));
                 setReviews(formatted as any);
@@ -68,18 +70,39 @@ export function Reviews({ navigation }: any) {
         }
     };
 
-    // Recarrega sempre que o filtro ou userId mudar
-    useEffect(() => {
-        fetchReviews();
-    }, [showOnlyUser, userId]);
-
-    // Recarrega também sempre que a tela ganha foco (caso o usuário tenha acabado de fazer uma review)
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
             fetchReviews();
         });
         return unsubscribe;
-    }, [navigation, showOnlyUser, userId]);
+    }, [navigation]);
+
+    const filteredReviews = useMemo(() => {
+        let result = reviews;
+
+        // Busca por nome da peça
+        if (searchQuery.trim() !== '') {
+            result = result.filter(r => 
+                r.pecas?.nome_produto?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                r.comentario?.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
+        // Filtro de usuário
+        if (showOnlyUser && userId) {
+            result = result.filter((r: any) => r.usuarioID === userId);
+        }
+
+        // Ordenação
+        result = [...result].sort((a, b) => {
+            if (sortMethod === 'maior_nota') return b.nota - a.nota;
+            if (sortMethod === 'menor_nota') return a.nota - b.nota;
+            // 'recentes' (id maior)
+            return b.id - a.id;
+        });
+
+        return result;
+    }, [reviews, searchQuery, showOnlyUser, sortMethod, userId]);
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FAFAFA' }}>
@@ -94,20 +117,34 @@ export function Reviews({ navigation }: any) {
                 <Text style={styles.title}>Avaliações</Text>
             </View>
 
-            <View style={styles.filterContainer}>
-                <Text style={styles.filterText}>Minhas avaliações</Text>
-                <Switch 
-                    value={showOnlyUser} 
-                    onValueChange={setShowOnlyUser}
-                    trackColor={{ false: "#767577", true: "#81b0ff" }}
-                    thumbColor={showOnlyUser ? "#2196F3" : "#f4f3f4"}
-                />
+            <View style={{ paddingHorizontal: '5%' }}>
+                <View style={{
+                    backgroundColor: '#f5f5f5', borderRadius: 12, flexDirection: 'row', alignItems: 'center',
+                    paddingHorizontal: 15, borderWidth: 1, borderColor: '#e0e0e0', marginBottom: 15
+                }}>
+                    <Ionicons name="search" size={20} color="#666" />
+                    <TextInput
+                        style={{ flex: 1, padding: 12, fontSize: 16, color: '#333' }}
+                        placeholder="Buscar por peça ou comentário..."
+                        placeholderTextColor="#999"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
+                    {searchQuery.length > 0 && (
+                        <Pressable onPress={() => setSearchQuery('')}>
+                            <Ionicons name="close-circle" size={20} color="#666" />
+                        </Pressable>
+                    )}
+                    <Pressable onPress={() => setModalFiltros(true)}>
+                        <Ionicons name="filter" size={20} color="#666" />
+                    </Pressable>
+                </View>
             </View>
 
             <ScrollView contentContainerStyle={styles.container}>
                 {isLoading ? (
                     <ActivityIndicator size="large" color="#0000ff" style={{ marginTop: 50 }} />
-                ) : reviews.length === 0 ? (
+                ) : filteredReviews.length === 0 ? (
                     <View style={styles.emptyState}>
                         <Ionicons name="star-half-outline" size={64} color="#ccc" />
                         <Text style={styles.emptyText}>
@@ -116,7 +153,7 @@ export function Reviews({ navigation }: any) {
                         <Text style={styles.emptySubtext}>Ajude a comunidade avaliando as peças que você já utilizou!</Text>
                     </View>
                 ) : (
-                    reviews.map(review => (
+                    filteredReviews.map(review => (
                         <View key={review.id} style={styles.reviewCard}>
                             <Text style={styles.pieceName}>{review.pecas?.nome_produto || "Peça"}</Text>
                             <View style={styles.starsRow}>
@@ -136,6 +173,81 @@ export function Reviews({ navigation }: any) {
                     ))
                 )}
             </ScrollView>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalFiltros}
+                onRequestClose={() => setModalFiltros(false)}
+            >
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+                    <View style={{
+                        backgroundColor: '#FFF',
+                        borderTopLeftRadius: 24,
+                        borderTopRightRadius: 24,
+                        padding: 24,
+                        maxHeight: '80%'
+                    }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Filtros e Ordenação</Text>
+                            <Pressable onPress={() => setModalFiltros(false)}>
+                                <Ionicons name="close-circle-outline" size={28} color="#666" />
+                            </Pressable>
+                        </View>
+
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            {/* Ordenação */}
+                            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 10 }}>Ordenar por</Text>
+                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20 }}>
+                                {[
+                                    { id: 'recentes', label: 'Mais Recentes' },
+                                    { id: 'maior_nota', label: 'Maior Nota' },
+                                    { id: 'menor_nota', label: 'Menor Nota' }
+                                ].map(option => (
+                                    <Pressable
+                                        key={option.id}
+                                        onPress={() => setSortMethod(option.id as any)}
+                                        style={{
+                                            paddingHorizontal: 16,
+                                            paddingVertical: 10,
+                                            marginRight: 10,
+                                            marginBottom: 10,
+                                            borderRadius: 20,
+                                            borderWidth: 1,
+                                            borderColor: sortMethod === option.id ? '#000' : '#DDD',
+                                            backgroundColor: sortMethod === option.id ? '#000' : '#FFF',
+                                        }}
+                                    >
+                                        <Text style={{
+                                            color: sortMethod === option.id ? '#FFF' : '#333',
+                                            fontWeight: '600'
+                                        }}>{option.label}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+
+                            {/* Filtros Específicos */}
+                            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 10 }}>Filtros</Text>
+                            <View style={styles.filterContainer}>
+                                <Text style={styles.filterText}>Apenas minhas avaliações</Text>
+                                <Switch 
+                                    value={showOnlyUser} 
+                                    onValueChange={setShowOnlyUser}
+                                    trackColor={{ false: "#767577", true: "#81b0ff" }}
+                                    thumbColor={showOnlyUser ? "#2196F3" : "#f4f3f4"}
+                                />
+                            </View>
+                        </ScrollView>
+
+                        <TouchableOpacity
+                            style={{ backgroundColor: '#000', padding: 15, borderRadius: 12, alignItems: 'center', marginTop: 20 }}
+                            onPress={() => setModalFiltros(false)}
+                        >
+                            <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>Aplicar Filtros</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -144,7 +256,7 @@ const styles = StyleSheet.create({
     container: { alignItems: 'center', paddingBottom: 40, paddingHorizontal: 20 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 20, backgroundColor: '#FAFAFA', position: 'relative' },
     title: { fontSize: 22, fontWeight: 'bold', color: '#1A1A1A' },
-    filterContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 25, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: '#EEE', marginBottom: 15 },
+    filterContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#EEE', marginBottom: 15 },
     filterText: { fontSize: 16, fontWeight: '500', color: '#333' },
     emptyState: { width: '100%', alignItems: 'center', marginTop: 50, padding: 20 },
     emptyText: { fontSize: 18, fontWeight: 'bold', marginTop: 20, textAlign: 'center', color: '#333' },

@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, ActivityIndicator, Alert } from "react-native";
+import { View, Text, Pressable, ScrollView, ActivityIndicator, Alert, SafeAreaView } from "react-native";
 import { styles } from "./styles";
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
@@ -211,26 +211,26 @@ export function BuildDetails({ navigation, route }: any) {
 
     if (loading) {
         return (
-            <View style={styles.container}>
+            <SafeAreaView style={styles.container}>
                 <ActivityIndicator size="large" color="#0066cc" />
-            </View>
+            </SafeAreaView>
         );
     }
 
     if (!build) {
         return (
-            <View style={styles.container}>
+            <SafeAreaView style={styles.container}>
                 <Text style={styles.errorText}>Montagem não encontrada</Text>
                 <Button label="Voltar"
                     onPress={() => navigation.navigate('Build', undefined, { pop: true })}>
                     Voltar
                 </Button>
-            </View>
+            </SafeAreaView>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <ScrollView
                 style={{ width: '100%' }}
                 contentContainerStyle={{ alignItems: 'center', paddingHorizontal: '5%' }}
@@ -242,10 +242,10 @@ export function BuildDetails({ navigation, route }: any) {
                             size={32}
                             color="black"
                             onPress={handleBack}
+                            style={{ position: 'absolute', left: 20, zIndex: 1 }}
                         />
-                        <Feather name="monitor" size={32} color="black" />
+                        <Text style={styles.title}>Detalhes da Montagem</Text>
                     </View>
-                    <Text style={styles.textMain}>Detalhes da Montagem</Text>
 
                     <View style={styles.content}>
                         <Text style={styles.textContent}>Montagem {buildNumber}</Text>
@@ -306,6 +306,6 @@ export function BuildDetails({ navigation, route }: any) {
                     </Text>
                 </View>
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, SafeAreaView, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, SafeAreaView, StyleSheet, ActivityIndicator, Pressable } from "react-native";
 import { Button } from "../../components/button";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { getPriceAlerts, PriceAlert } from '../../utils/priceAlertsHelper';
@@ -27,7 +27,13 @@ export function PriceAlerts({ navigation }: any) {
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FAFAFA' }}>
             <ScrollView contentContainerStyle={styles.container}>
                 <View style={styles.header}>
-                    <Ionicons name="arrow-back-outline" size={32} color="black" onPress={() => navigation.goBack()} />
+                    <Ionicons
+                        name="arrow-back-outline"
+                        size={32}
+                        color="black"
+                        onPress={() => navigation.goBack()}
+                        style={{ position: 'absolute', left: 20, zIndex: 1 }}
+                    />
                     <Text style={styles.title}>Alertas de Preço</Text>
                 </View>
 
@@ -42,17 +48,20 @@ export function PriceAlerts({ navigation }: any) {
                 ) : (
                     <View style={{ width: '90%' }}>
                         {alerts.map((alert) => (
-                            <AddComponents
+                            <Pressable
                                 key={alert.id}
-                                componentData={alert}
-                                hideSelectButton={true}
-                                onAlertChanged={loadAlerts} // Recarrega se o usuário desmarcar o sino
-                            />
+                                onPress={() => navigation.navigate('ComponentDetails', { componentData: alert })}
+                            >
+                                <AddComponents
+                                    componentData={alert}
+                                    hideSelectButton={true}
+                                    onAlertChanged={loadAlerts} // Recarrega se o usuário desmarcar o sino
+                                />
+                            </Pressable>
                         ))}
                     </View>
                 )}
 
-                <Button label="Voltar" onPress={() => navigation.goBack()} style={{ marginTop: 40, width: '90%' }}>Voltar</Button>
             </ScrollView>
         </SafeAreaView>
     );
@@ -60,8 +69,8 @@ export function PriceAlerts({ navigation }: any) {
 
 const styles = StyleSheet.create({
     container: { alignItems: 'center', paddingBottom: 40 },
-    header: { flexDirection: 'row', alignItems: 'center', width: '90%', marginTop: 20, marginBottom: 30 },
-    title: { fontSize: 24, fontWeight: 'bold', marginLeft: 15 },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', marginTop: 20, marginBottom: 30 },
+    title: { fontSize: 24, fontWeight: 'bold' },
     emptyState: { width: '90%', alignItems: 'center', marginTop: 50, padding: 20 },
     emptyText: { fontSize: 18, fontWeight: 'bold', marginTop: 20, textAlign: 'center', color: '#333' },
     emptySubtext: { fontSize: 14, color: '#666', textAlign: 'center', marginTop: 10, lineHeight: 20 }

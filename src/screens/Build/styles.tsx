@@ -7,12 +7,19 @@ export const styles = StyleSheet.create({
         paddingTop: 20,
         backgroundColor: '#f5f5f5',
     },
-    textMain: {
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 20,
+        backgroundColor: '#f5f5f5',
+        position: 'relative',
+        width: '100%',
+    },
+    title: {
+        fontSize: 22,
         fontWeight: 'bold',
-        fontSize: 35,
-        marginBottom: 20,
-        textAlign: 'center',
-        marginTop: 40
+        color: '#1A1A1A'
     },
     loadingContainer: {
         flex: 1,
