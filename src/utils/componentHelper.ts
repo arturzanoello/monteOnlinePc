@@ -22,7 +22,7 @@ export const fetchComponentsByType = async (
     searchQuery: string = '',
     page: number = 0,
     pageSize: number = 20,
-    sortMethod: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' = 'price_desc',
+    sortMethod: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | 'none' = 'none',
     minPrice?: number,
     maxPrice?: number,
     hiddenFilter: string = '',

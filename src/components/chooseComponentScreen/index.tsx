@@ -23,9 +23,9 @@ interface ChooseComponentScreenProps {
     }[];
     onLoadMore?: () => void;
     onSearch?: (query: string) => void;
-    onSortChange?: (order: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc') => void;
+    onSortChange?: (order: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | 'none') => void;
     onPriceFilterChange?: (min?: number, max?: number) => void;
-    sortMethod?: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc';
+    sortMethod?: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | 'none';
     hasMore?: boolean;
     isLoadingMore?: boolean;
     searchValue?: string;
@@ -43,7 +43,7 @@ export function ChooseComponentScreen({
     onSearch,
     onSortChange,
     onPriceFilterChange,
-    sortMethod = 'price_desc',
+    sortMethod = 'none',
     hasMore = false,
     isLoadingMore = false,
     searchValue = '',
@@ -57,12 +57,11 @@ export function ChooseComponentScreen({
 
     const handleSortToggle = () => {
         const orderCycle = {
+            'none': 'price_desc',
             'price_desc': 'price_asc',
-            'price_asc': 'name_asc',
-            'name_asc': 'name_desc',
-            'name_desc': 'price_desc'
+            'price_asc': 'none'
         };
-        const nextSort = orderCycle[currentSort] as 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc';
+        const nextSort = (orderCycle[currentSort as keyof typeof orderCycle] || 'none') as 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | 'none';
         setCurrentSort(nextSort);
         if (onSortChange) {
             onSortChange(nextSort);
@@ -195,13 +194,7 @@ export function ChooseComponentScreen({
 
     return (
         <View style={styles.container}>
-            <ScrollView 
-                style={{ width: '100%' }}
-                contentContainerStyle={{ alignItems: 'center' }}
-                onScroll={handleScroll}
-                scrollEventThrottle={100}
-            >
-                <View style={{ width: '90%' }}>
+            <View style={{ width: '90%', alignSelf: 'center', marginTop: 10 }}>
                     <View style={styles.header}>
                         <Ionicons
                             name="arrow-back-outline"
@@ -282,21 +275,23 @@ export function ChooseComponentScreen({
                                     <Ionicons name="arrow-down" size={20} color="black" />
                                 </>
                             )}
-                            {currentSort === 'name_asc' && (
+                            {currentSort === 'none' && (
                                 <>
-                                    <Text style={styles.priceButtonText}>Nome (A-Z)</Text>
-                                    <Ionicons name="text-outline" size={20} color="black" />
-                                </>
-                            )}
-                            {currentSort === 'name_desc' && (
-                                <>
-                                    <Text style={styles.priceButtonText}>Nome (Z-A)</Text>
-                                    <Ionicons name="text-outline" size={20} color="black" />
+                                    <Text style={styles.priceButtonText}>Sem Ordenação</Text>
+                                    <Ionicons name="filter-outline" size={20} color="black" />
                                 </>
                             )}
                         </Pressable>
                     </View>
+                </View>
 
+            <ScrollView 
+                style={{ width: '100%' }}
+                contentContainerStyle={{ alignItems: 'center', paddingBottom: 40 }}
+                onScroll={handleScroll}
+                scrollEventThrottle={100}
+            >
+                <View style={{ width: '90%' }}>
                     {componentsData.map((component) => (
                         <AddComponents
                             key={component.id}

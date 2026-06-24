@@ -42,7 +42,7 @@ export function BuildDetails({ navigation, route }: any) {
             if (selectedBuild) {
                 // Criar cópia para permitir edições temporárias
                 const buildCopy = JSON.parse(JSON.stringify(selectedBuild));
-                
+
                 // Carregar componentes editados temporariamente
                 const componentTypes = ['cpu', 'motherboard', 'memory', 'gpu', 'storage', 'psu', 'case'];
                 for (const type of componentTypes) {
@@ -57,7 +57,7 @@ export function BuildDetails({ navigation, route }: any) {
                         };
                     }
                 }
-                
+
                 // Recalcular total com componentes editados
                 let newTotal = 0;
                 Object.values(buildCopy.components).forEach((comp: any) => {
@@ -65,7 +65,7 @@ export function BuildDetails({ navigation, route }: any) {
                         newTotal += parsePrice(comp.price) * (comp.quantity || 1);
                     }
                 });
-                
+
                 setBuild(buildCopy);
                 setTotalPrice(newTotal);
             }
@@ -141,12 +141,12 @@ export function BuildDetails({ navigation, route }: any) {
                 for (const type of componentTypes) {
                     await AsyncStorage.removeItem(`@temp_edited_${type}`);
                 }
-                
+
                 // Limpar flags de edição
                 await AsyncStorage.removeItem('@editing_build_id');
                 await AsyncStorage.removeItem('@editing_build_number');
                 await AsyncStorage.removeItem('@editing_component_type');
-                
+
                 Alert.alert("Sucesso", "Alterações salvas com sucesso!");
                 navigation.navigate('Build');
             } else {
@@ -165,11 +165,11 @@ export function BuildDetails({ navigation, route }: any) {
             for (const type of componentTypes) {
                 await AsyncStorage.removeItem(`@temp_edited_${type}`);
             }
-            
+
             await AsyncStorage.removeItem('@editing_build_id');
             await AsyncStorage.removeItem('@editing_build_number');
             await AsyncStorage.removeItem('@editing_component_type');
-            
+
             // Navegar para Build
             navigation.navigate('Build', undefined, { pop: true });
         } catch (error) {
@@ -231,70 +231,79 @@ export function BuildDetails({ navigation, route }: any) {
 
     return (
         <View style={styles.container}>
-            <ScrollView 
+            <ScrollView
                 style={{ width: '100%' }}
                 contentContainerStyle={{ alignItems: 'center', paddingHorizontal: '5%' }}
             >
                 <View style={{ width: '100%', maxWidth: 600 }}>
-                <View style={styles.header}>
-                    <Ionicons
-                        name="arrow-back-outline"
-                        size={32}
-                        color="black"
-                        onPress={handleBack}
-                    />
-                    <Feather name="monitor" size={32} color="black" />
-                </View>
-                <Text style={styles.textMain}>Detalhes da Montagem</Text>
+                    <View style={styles.header}>
+                        <Ionicons
+                            name="arrow-back-outline"
+                            size={32}
+                            color="black"
+                            onPress={handleBack}
+                        />
+                        <Feather name="monitor" size={32} color="black" />
+                    </View>
+                    <Text style={styles.textMain}>Detalhes da Montagem</Text>
 
-                <View style={styles.content}>
-                    <Text style={styles.textContent}>Montagem {buildNumber}</Text>
+                    <View style={styles.content}>
+                        <Text style={styles.textContent}>Montagem {buildNumber}</Text>
 
-                    {Object.entries(build.components).map(([type, component]) => {
-                        if (!component) return null;
+                        {Object.entries(build.components).map(([type, component]) => {
+                            if (!component) return null;
 
-                        return (
-                            <View key={type} style={styles.itemContent}>
-                                <View style={styles.componentInfo}>
-                                    <Text style={styles.componentType}>
-                                        {getComponentTypeName(type)}
-                                    </Text>
-                                    <Text style={styles.componentName} numberOfLines={2}>
-                                        {component.name}
-                                    </Text>
-                                    <Text style={styles.componentPrice}>
-                                        {component.price}
-                                    </Text>
+                            return (
+                                <View key={type} style={styles.itemContent}>
+                                    <Pressable
+                                        style={styles.editButton}
+                                        onPress={() => navigation.navigate('ReviewComponent', { 
+                                            componentId: component.id, 
+                                            componentName: component.name 
+                                        })}
+                                    >
+                                        <Ionicons name="star-outline" size={24} color="#f59e0b" />
+                                    </Pressable>
+                                    <View style={styles.componentInfo}>
+                                        <Text style={styles.componentType}>
+                                            {getComponentTypeName(type)}
+                                        </Text>
+                                        <Text style={styles.componentName} numberOfLines={2}>
+                                            {component.name}
+                                        </Text>
+                                        <Text style={styles.componentPrice}>
+                                            {component.price}
+                                        </Text>
+                                    </View>
+
+                                    <Pressable
+                                        style={styles.editButton}
+                                        onPress={() => handleEditComponent(type)}
+                                    >
+                                        <Ionicons name="create-outline" size={24} color="#2e7d32" />
+                                    </Pressable>
                                 </View>
+                            );
+                        })}
 
-                                <Pressable 
-                                    style={styles.editButton}
-                                    onPress={() => handleEditComponent(type)}
-                                >
-                                    <Ionicons name="create-outline" size={24} color="#2e7d32" />
-                                </Pressable>
-                            </View>
-                        );
-                    })}
+                        <View style={styles.totalContainer}>
+                            <Text style={styles.totalText}>
+                                Total: {formatPrice(totalPrice)}
+                            </Text>
+                        </View>
 
-                    <View style={styles.totalContainer}>
-                        <Text style={styles.totalText}>
-                            Total: {formatPrice(totalPrice)}
-                        </Text>
+                        <View style={styles.buttonContainer}>
+                            <Button
+                                label="Salvar alterações"
+                                onPress={handleSaveChanges}
+                            >
+                                Salvar alterações
+                            </Button>
+                        </View>
                     </View>
-
-                    <View style={styles.buttonContainer}>
-                        <Button
-                            label="Salvar alterações"
-                            onPress={handleSaveChanges}
-                        >
-                            Salvar alterações
-                        </Button>
-                    </View>
-                </View>
-                <Text style={styles.textDelete} onPress={handleDelete}>
-                    Deletar Montagem
-                </Text>
+                    <Text style={styles.textDelete} onPress={handleDelete}>
+                        Deletar Montagem
+                    </Text>
                 </View>
             </ScrollView>
         </View>

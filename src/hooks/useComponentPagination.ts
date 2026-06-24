@@ -14,13 +14,13 @@ export const useComponentPagination = (
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [sortMethod, setSortMethod] = useState<'price_asc' | 'price_desc' | 'name_asc' | 'name_desc'>('price_desc');
+    const [sortMethod, setSortMethod] = useState<'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | 'none'>('none');
     const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
     const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
     const isLoadingRef = useRef(false);
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const fetchData = async (pageNum: number, query: string, order: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc', min?: number, max?: number, append: boolean = false) => {
+    const fetchData = async (pageNum: number, query: string, order: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | 'none', min?: number, max?: number, append: boolean = false) => {
         try {
             console.log('[fetchData] Iniciando:', { pageNum, query, order, append, isLoadingRef: isLoadingRef.current });
             
@@ -114,7 +114,7 @@ export const useComponentPagination = (
         }, 300);
     }, [sortMethod, minPrice, maxPrice]);
 
-    const handleSortChange = useCallback((method: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc') => {
+    const handleSortChange = useCallback((method: 'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | 'none') => {
         setSortMethod(method);
         setPage(0);
         setHasMore(true);

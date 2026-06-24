@@ -21,6 +21,7 @@ import { About } from '../screens/About';
 import { PriceAlerts } from '../screens/PriceAlerts';
 import { Reviews } from '../screens/Reviews';
 import { AllComponents } from '../screens/AllComponents';
+import { ReviewComponent } from '../screens/ReviewComponent';
 
 const Stack = createStackNavigator();
 
@@ -48,6 +49,7 @@ export function StackRoutes() {
       <Stack.Screen name='PriceAlerts' component={PriceAlerts} />
       <Stack.Screen name='Reviews' component={Reviews} />
       <Stack.Screen name='AllComponents' component={AllComponents} />
+      <Stack.Screen name='ReviewComponent' component={ReviewComponent} />
     </Stack.Navigator>
   );
 }
