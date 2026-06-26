@@ -5,15 +5,21 @@ export const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: '#f5f5f5',
     },
-    textMain: {
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 20,
+        backgroundColor: '#f5f5f5',
+        position: 'relative',
+        width: '100%',
+    },
+    title: {
+        fontSize: 22,
         fontWeight: 'bold',
-        fontSize: 32,
-        marginTop: 10,
-        marginBottom: 20,
-        textAlign: 'center'
+        color: '#1A1A1A'
     },
     scrollView: {
         width: '90%',

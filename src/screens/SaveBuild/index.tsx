@@ -1,9 +1,10 @@
-import { View, Text, ScrollView, Alert } from "react-native";
+import { View, Text, ScrollView, Alert, SafeAreaView } from "react-native";
 import { getNextBuildId, saveBuild } from "../../utils/storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { styles } from "./styles";
 import { Button } from "../../components/button";
+import { Ionicons } from '@expo/vector-icons';
 
 export function SaveBuild({ navigation }: any) {
     const [components, setComponents] = useState<any>({});
@@ -138,8 +139,17 @@ export function SaveBuild({ navigation }: any) {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.textMain}>Resumo da Montagem</Text>
+        <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+                <Ionicons
+                    name="arrow-back-outline"
+                    size={32}
+                    color="black"
+                    onPress={() => navigation.goBack()}
+                    style={{ position: 'absolute', left: 20, zIndex: 1 }}
+                />
+                <Text style={styles.title}>Resumo da Montagem</Text>
+            </View>
 
             <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 10 }}>
                 {['Gamer', 'Escritório', 'Design'].map((cat) => (
@@ -189,6 +199,6 @@ export function SaveBuild({ navigation }: any) {
                 {saving ? "Salvando..." : "Salvar Montagem"}
             </Button>
         
-        </View>
+        </SafeAreaView>
     );
 }
