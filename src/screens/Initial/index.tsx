@@ -25,7 +25,7 @@ export function Initial({ navigation }: any) {
                 <View style={styles.actionGrid}>
                     <Pressable
                         style={styles.actionCard}
-                        onPress={() => navigation.navigate('ChooseCpu', undefined, { pop: true })}
+                        onPress={() => navigation.navigate('ChooseCpu')}
                     >
                         <Ionicons name="hardware-chip-outline" size={32} color="#2196F3" />
                         <Text style={styles.actionTitle}>Montar Computador</Text>
@@ -34,7 +34,7 @@ export function Initial({ navigation }: any) {
 
                     <Pressable
                         style={styles.actionCard}
-                        onPress={() => navigation.navigate('Build', undefined, { pop: true })}
+                        onPress={() => navigation.navigate('Build')}
                     >
                         <Ionicons name="list-outline" size={32} color="#4CAF50" />
                         <Text style={styles.actionTitle}>Ver Montagens</Text>

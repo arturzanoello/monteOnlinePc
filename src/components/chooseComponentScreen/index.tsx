@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AddComponents } from "../addComponents";
 import Feather from "@expo/vector-icons/Feather";
 import { validateMotherboardById, validateMemoryById } from '../../utils/hardwareCompatibility';
+import { getBuilds } from '../../utils/storage';
 
 type ComponentType = 'cpu' | 'motherboard' | 'memory' | 'gpu' | 'storage' | 'psu' | 'case';
 
@@ -80,24 +81,37 @@ export function ChooseComponentScreen({
 
     const validateCompatibility = async (component: any) => {
         try {
-            if (componentType === 'motherboard') {
+            let cpuToTest = null;
+            let mbToTest = null;
+
+            const editingBuildId = await AsyncStorage.getItem('@editing_build_id');
+            if (editingBuildId) {
+                const savedBuilds = await getBuilds();
+                const selectedBuild = savedBuilds.find(b => b.id.toString() === editingBuildId);
+                if (selectedBuild) {
+                    const tempCpu = await AsyncStorage.getItem('@temp_edited_cpu');
+                    cpuToTest = tempCpu ? JSON.parse(tempCpu) : selectedBuild.components.cpu;
+                    
+                    const tempMb = await AsyncStorage.getItem('@temp_edited_motherboard');
+                    mbToTest = tempMb ? JSON.parse(tempMb) : selectedBuild.components.motherboard;
+                }
+            } else {
                 const cpuData = await AsyncStorage.getItem('@selected_cpu');
-                if (cpuData) {
-                    const cpu = JSON.parse(cpuData);
-                    if (cpu.id && component.id) {
-                        const validation = await validateMotherboardById(cpu.id, component.id);
-                        if (!validation.valid) return validation.error;
-                    }
-                }
-            } else if (componentType === 'memory') {
+                if (cpuData) cpuToTest = JSON.parse(cpuData);
+                
                 const mbData = await AsyncStorage.getItem('@selected_motherboard');
-                if (mbData) {
-                    const mb = JSON.parse(mbData);
-                    if (mb.id && component.id) {
-                        const validation = await validateMemoryById(mb.id, component.id);
-                        if (!validation.valid) return validation.error;
-                    }
-                }
+                if (mbData) mbToTest = JSON.parse(mbData);
+            }
+
+            if (componentType === 'motherboard' && cpuToTest?.id && component.id) {
+                const validation = await validateMotherboardById(cpuToTest.id, component.id);
+                if (!validation.valid) return validation.error;
+            } else if (componentType === 'memory' && mbToTest?.id && component.id) {
+                const validation = await validateMemoryById(mbToTest.id, component.id);
+                if (!validation.valid) return validation.error;
+            } else if (componentType === 'cpu' && mbToTest?.id && component.id) {
+                const validation = await validateMotherboardById(component.id, mbToTest.id);
+                if (!validation.valid) return validation.error;
             }
         } catch (error) {
             console.error('Erro na validação', error);
@@ -145,11 +159,8 @@ export function ChooseComponentScreen({
 
                 console.log('[ChooseComponent] Navegando de volta para BuildDetails');
 
-                // Voltar para a tela de detalhes com os parâmetros corretos
-                navigation.navigate('BuildDetails', {
-                    buildId: editingBuildId,
-                    buildNumber: parseInt(editingBuildNumber)
-                });
+                // Voltar para a tela de detalhes
+                navigation.goBack();
                 return; // IMPORTANTE: retornar aqui para não executar o código abaixo
             }
 
@@ -159,9 +170,7 @@ export function ChooseComponentScreen({
                 `@selected_${componentType}`,
                 JSON.stringify(component)
             );
-            navigation.navigate(nextScreen, undefined,
-                { pop: true }
-            );
+            navigation.push(nextScreen);
         } catch (e) {
             console.error(`Erro ao salvar ${componentType}:`, e);
         }
@@ -323,7 +332,7 @@ export function ChooseComponentScreen({
                                         key={option.id}
                                         onPress={() => {
                                             setCurrentSort(option.id as any);
-                                            if (onSortChange) onSortChange(option.id as any);
+                                            setCurrentSort(option.id as any);
                                         }}
                                         style={{
                                             paddingHorizontal: 16,
@@ -367,6 +376,7 @@ export function ChooseComponentScreen({
                         <TouchableOpacity 
                             style={{ backgroundColor: '#000', padding: 15, borderRadius: 12, alignItems: 'center' }}
                             onPress={() => {
+                                if (onSortChange) onSortChange(currentSort);
                                 applyPriceFilter();
                                 setModalFiltros(false);
                             }}

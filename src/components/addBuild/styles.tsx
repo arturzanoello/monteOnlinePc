@@ -1,35 +1,68 @@
 import { StyleSheet } from "react-native";
-import { colors } from "../../constants/Colors";
 
 export const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#f8f8f8',
-        borderRadius: 16,
-        padding: 16,
-        alignItems: 'center',
-        marginTop: 15,
         width: '100%',
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
+        marginBottom: 16,
+        borderRadius: 16,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
         elevation: 3,
+        backgroundColor: '#fff',
     },
-    textMain: {
-        fontWeight: '700',
+    gradientCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#f0f0f0',
+    },
+    iconContainer: {
+        width: 56,
+        height: 56,
+        borderRadius: 16,
+        backgroundColor: '#e6f0fa',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+    },
+    infoContainer: {
+        flex: 1,
+        justifyContent: 'center',
+    },
+    title: {
         fontSize: 18,
-        textAlign: 'center',
-        color: '#333',
-        marginBottom: 8,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+        marginBottom: 6,
     },
-    textContent: {
-        fontSize: 20,
-        fontWeight: '700',
+    priceBadge: {
+        fontSize: 16,
+        fontWeight: '600',
         color: '#2e7d32',
-        textAlign: 'center',
-        marginTop: 8,
-        marginBottom: 12,
-    }
-})
+    },
+    actionContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    editButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: '#f5f5f5',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    deleteButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: '#fff0f0',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+});

@@ -100,7 +100,7 @@ export function ReviewComponent({ route, navigation }: any) {
                 <Button
                     label="Enviar Avaliação"
                     onPress={handleSubmit}
-                    style={{ marginTop: 30 }}
+                    style={{ marginTop: 30, width: '100%' }}
                 >
                     {isSubmitting ? (
                         <ActivityIndicator color="#fff" />

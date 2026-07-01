@@ -13,6 +13,7 @@ export function BuildDetails({ navigation, route }: any) {
     const [build, setBuild] = useState<PcBuild | null>(null);
     const [loading, setLoading] = useState(true);
     const [totalPrice, setTotalPrice] = useState(0);
+    const [editedCategory, setEditedCategory] = useState<'Gamer' | 'Escritório' | 'Design'>('Gamer');
 
     const parsePrice = (priceString: string): number => {
         if (!priceString) return 0;
@@ -68,6 +69,9 @@ export function BuildDetails({ navigation, route }: any) {
 
                 setBuild(buildCopy);
                 setTotalPrice(newTotal);
+                if (buildCopy.category) {
+                    setEditedCategory(buildCopy.category as any);
+                }
             }
         } catch (error) {
             console.error("Erro ao carregar montagem:", error);
@@ -120,7 +124,7 @@ export function BuildDetails({ navigation, route }: any) {
             await AsyncStorage.setItem('@editing_build_number', buildNumber.toString());
             await AsyncStorage.setItem('@editing_component_type', componentType);
             const screenName = getNextScreen(componentType);
-            navigation.navigate(screenName, undefined, { pop: true });
+            navigation.push(screenName);
         } catch (error) {
             console.error("Erro ao preparar edição:", error);
             Alert.alert("Erro", "Não foi possível iniciar a edição");
@@ -131,9 +135,14 @@ export function BuildDetails({ navigation, route }: any) {
         if (!build) return;
 
         try {
+            const updatedBuild = {
+                ...build,
+                category: editedCategory
+            };
+
             // Atualizar build no banco de dados
             const { updateBuild } = await import('../../utils/storage');
-            const success = await updateBuild(build);
+            const success = await updateBuild(updatedBuild);
 
             if (success) {
                 // Limpar componentes temporários
@@ -148,7 +157,7 @@ export function BuildDetails({ navigation, route }: any) {
                 await AsyncStorage.removeItem('@editing_component_type');
 
                 Alert.alert("Sucesso", "Alterações salvas com sucesso!");
-                navigation.navigate('Build');
+                navigation.goBack();
             } else {
                 Alert.alert("Erro", "Não foi possível salvar as alterações");
             }
@@ -170,11 +179,11 @@ export function BuildDetails({ navigation, route }: any) {
             await AsyncStorage.removeItem('@editing_build_number');
             await AsyncStorage.removeItem('@editing_component_type');
 
-            // Navegar para Build
-            navigation.navigate('Build', undefined, { pop: true });
+            // Voltar para Build
+            navigation.goBack();
         } catch (error) {
             console.error("Erro ao voltar:", error);
-            navigation.navigate('Build', undefined, { pop: true });
+            navigation.goBack();
         }
     };
 
@@ -222,7 +231,7 @@ export function BuildDetails({ navigation, route }: any) {
             <SafeAreaView style={styles.container}>
                 <Text style={styles.errorText}>Montagem não encontrada</Text>
                 <Button label="Voltar"
-                    onPress={() => navigation.navigate('Build', undefined, { pop: true })}>
+                    onPress={() => navigation.navigate('Build')}>
                     Voltar
                 </Button>
             </SafeAreaView>
@@ -249,6 +258,32 @@ export function BuildDetails({ navigation, route }: any) {
 
                     <View style={styles.content}>
                         <Text style={styles.textContent}>Montagem {buildNumber}</Text>
+
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 10 }}>
+                            {[
+                                { cat: 'Gamer', activeBg: '#F44336', activeText: 'white' },
+                                { cat: 'Escritório', activeBg: '#2196F3', activeText: 'white' },
+                                { cat: 'Design', activeBg: '#4CAF50', activeText: 'white' }
+                            ].map(({ cat, activeBg, activeText }) => (
+                                <Text 
+                                    key={cat} 
+                                    style={{
+                                        marginHorizontal: 10,
+                                        paddingVertical: 8,
+                                        paddingHorizontal: 16,
+                                        borderRadius: 8,
+                                        backgroundColor: editedCategory === cat ? activeBg : '#f5f5f5',
+                                        color: editedCategory === cat ? activeText : '#666',
+                                        fontWeight: 'bold',
+                                        borderWidth: 1,
+                                        borderColor: editedCategory === cat ? activeBg : '#ddd'
+                                    }}
+                                    onPress={() => setEditedCategory(cat as any)}
+                                >
+                                    {cat}
+                                </Text>
+                            ))}
+                        </View>
 
                         {Object.entries(build.components).map(([type, component]) => {
                             if (!component) return null;

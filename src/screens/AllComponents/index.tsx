@@ -18,11 +18,22 @@ const categories = [
 export function AllComponents({ navigation }: any) {
     const [selectedCategory, setSelectedCategory] = useState(categories[0]);
     const [modalFiltros, setModalFiltros] = useState(false);
+    
+    // Temporary states for the modal
+    const [tempCategory, setTempCategory] = useState(categories[0]);
+    const [tempSortMethod, setTempSortMethod] = useState<'price_asc' | 'price_desc' | 'name_asc' | 'name_desc' | 'none'>('none');
 
     const {
         data, loading, loadingMore, error, hasMore, searchQuery,
         handleLoadMore, handleSearch, sortMethod, handleSortChange
     } = useComponentPagination(selectedCategory.search);
+
+    // Sync temp state when opening modal
+    const openModal = () => {
+        setTempCategory(selectedCategory);
+        setTempSortMethod(sortMethod as any);
+        setModalFiltros(true);
+    };
 
     const handleScroll = (event: any) => {
         const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
@@ -67,7 +78,7 @@ export function AllComponents({ navigation }: any) {
                             <Ionicons name="close-circle" size={20} color="#666" />
                         </Pressable>
                     )}
-                    <Pressable onPress={() => setModalFiltros(true)}>
+                    <Pressable onPress={openModal}>
                         <Ionicons name="filter" size={20} color="#666" />
                     </Pressable>
                 </View>
@@ -146,7 +157,7 @@ export function AllComponents({ navigation }: any) {
                                 ].map(option => (
                                     <Pressable
                                         key={option.id}
-                                        onPress={() => handleSortChange(option.id as any)}
+                                        onPress={() => setTempSortMethod(option.id as any)}
                                         style={{
                                             paddingHorizontal: 16,
                                             paddingVertical: 10,
@@ -154,12 +165,12 @@ export function AllComponents({ navigation }: any) {
                                             marginBottom: 10,
                                             borderRadius: 20,
                                             borderWidth: 1,
-                                            borderColor: sortMethod === option.id ? '#000' : '#DDD',
-                                            backgroundColor: sortMethod === option.id ? '#000' : '#FFF',
+                                            borderColor: tempSortMethod === option.id ? '#000' : '#DDD',
+                                            backgroundColor: tempSortMethod === option.id ? '#000' : '#FFF',
                                         }}
                                     >
                                         <Text style={{
-                                            color: sortMethod === option.id ? '#FFF' : '#333',
+                                            color: tempSortMethod === option.id ? '#FFF' : '#333',
                                             fontWeight: '600'
                                         }}>{option.label}</Text>
                                     </Pressable>
@@ -172,7 +183,7 @@ export function AllComponents({ navigation }: any) {
                                 {categories.map(cat => (
                                     <Pressable
                                         key={cat.id}
-                                        onPress={() => setSelectedCategory(cat)}
+                                        onPress={() => setTempCategory(cat)}
                                         style={{
                                             paddingHorizontal: 16,
                                             paddingVertical: 10,
@@ -180,12 +191,12 @@ export function AllComponents({ navigation }: any) {
                                             marginBottom: 10,
                                             borderRadius: 20,
                                             borderWidth: 1,
-                                            borderColor: selectedCategory.id === cat.id ? '#2196F3' : '#DDD',
-                                            backgroundColor: selectedCategory.id === cat.id ? '#2196F3' : '#FFF',
+                                            borderColor: tempCategory.id === cat.id ? '#2196F3' : '#DDD',
+                                            backgroundColor: tempCategory.id === cat.id ? '#2196F3' : '#FFF',
                                         }}
                                     >
                                         <Text style={{
-                                            color: selectedCategory.id === cat.id ? '#FFF' : '#333',
+                                            color: tempCategory.id === cat.id ? '#FFF' : '#333',
                                             fontWeight: '600'
                                         }}>{cat.label}</Text>
                                     </Pressable>
@@ -195,7 +206,11 @@ export function AllComponents({ navigation }: any) {
 
                         <TouchableOpacity
                             style={{ backgroundColor: '#000', padding: 15, borderRadius: 12, alignItems: 'center' }}
-                            onPress={() => setModalFiltros(false)}
+                            onPress={() => {
+                                handleSortChange(tempSortMethod as any);
+                                setSelectedCategory(tempCategory);
+                                setModalFiltros(false);
+                            }}
                         >
                             <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>Aplicar Filtros</Text>
                         </TouchableOpacity>

@@ -1,8 +1,7 @@
 import { View, Text, Pressable } from "react-native";
 import { styles } from "./styles";
-import { Button } from "../button";
-
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface AddBuildProps {
     id: number;
@@ -13,24 +12,41 @@ interface AddBuildProps {
 
 export function AddBuild({ id, price, onPress, onDelete }: AddBuildProps) {
     return (
-        <View style={styles.container}>
-            <Pressable 
-                style={{ position: 'absolute', top: 12, right: 12, padding: 4, zIndex: 10 }} 
-                onPress={onDelete}
+        <Pressable 
+            style={({ pressed }) => [
+                styles.container,
+                pressed && { transform: [{ scale: 0.98 }] }
+            ]}
+            onPress={onPress}
+        >
+            <LinearGradient
+                colors={['#ffffff', '#fcfcfc']}
+                style={styles.gradientCard}
             >
-                <Ionicons name="trash-outline" size={24} color="#d32f2f" />
-            </Pressable>
+                <View style={styles.iconContainer}>
+                    <Ionicons name="hardware-chip" size={32} color="#0066cc" />
+                </View>
+                
+                <View style={styles.infoContainer}>
+                    <Text style={styles.title}>Montagem {id}</Text>
+                    <Text style={styles.priceBadge}>{price}</Text>
+                </View>
 
-            <Text style={styles.textMain}>Montagem {id}</Text>
-            <Text style={styles.textContent}>{price}</Text>
-
-            <Button
-                label="Editar"
-                onPress={onPress}
-                style={{ marginTop: 8, width: '100%' }}
-            >
-                Editar
-            </Button>
-        </View>
+                <View style={styles.actionContainer}>
+                    <Pressable 
+                        style={styles.editButton} 
+                        onPress={onPress}
+                    >
+                        <Ionicons name="create-outline" size={20} color="#0066cc" />
+                    </Pressable>
+                    <Pressable 
+                        style={styles.deleteButton} 
+                        onPress={onDelete}
+                    >
+                        <Ionicons name="trash-outline" size={20} color="#d32f2f" />
+                    </Pressable>
+                </View>
+            </LinearGradient>
+        </Pressable>
     )
 }

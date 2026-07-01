@@ -152,16 +152,23 @@ export function SaveBuild({ navigation }: any) {
             </View>
 
             <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 10 }}>
-                {['Gamer', 'Escritório', 'Design'].map((cat) => (
+                {[
+                    { cat: 'Gamer', activeBg: '#F44336', activeText: 'white' },
+                    { cat: 'Escritório', activeBg: '#2196F3', activeText: 'white' },
+                    { cat: 'Design', activeBg: '#4CAF50', activeText: 'white' }
+                ].map(({ cat, activeBg, activeText }) => (
                     <Text 
                         key={cat} 
                         style={{
                             marginHorizontal: 10,
-                            padding: 8,
+                            paddingVertical: 8,
+                            paddingHorizontal: 16,
                             borderRadius: 8,
-                            backgroundColor: category === cat ? '#2196F3' : '#ddd',
-                            color: category === cat ? 'white' : 'black',
-                            fontWeight: 'bold'
+                            backgroundColor: category === cat ? activeBg : '#f5f5f5',
+                            color: category === cat ? activeText : '#666',
+                            fontWeight: 'bold',
+                            borderWidth: 1,
+                            borderColor: category === cat ? activeBg : '#ddd'
                         }}
                         onPress={() => setCategory(cat as any)}
                     >
@@ -170,7 +177,7 @@ export function SaveBuild({ navigation }: any) {
                 ))}
             </View>
 
-            <ScrollView style={styles.scrollView}>
+            <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 100 }}>
                 {Object.entries(components).map(([key, value]: [string, any]) => (
                     value && (
                         <View key={key} style={styles.componentItem}>

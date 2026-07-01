@@ -39,7 +39,19 @@ export const updateBuild = async (build: PcBuild) => {
             throw new Error('Usuário não está logado');
         }
 
-        // 1. Deleta todas as peças antigas da montagem
+        // 1. Atualiza a categoria na tabela montagens
+        const { error: updateMontagemError } = await supabase
+            .from('montagens')
+            .update({ categoria: build.category })
+            .eq('id', build.id)
+            .eq('id_usuario', user.id);
+
+        if (updateMontagemError) {
+            console.error('Erro ao atualizar montagem:', updateMontagemError);
+            throw updateMontagemError;
+        }
+
+        // 2. Deleta todas as peças antigas da montagem
         const { error: deleteError } = await supabase
             .from('montagem_pecas')
             .delete()
@@ -121,7 +133,8 @@ export const saveBuild = async (newBuild: PcBuild) => {
             .from('montagens')
             .insert([{
                 id_usuario: user.id,
-                data_criacao: new Date().toISOString()
+                data_criacao: new Date().toISOString(),
+                categoria: newBuild.category
             }])
             .select()
             .single();
@@ -196,7 +209,7 @@ export const getBuilds = async (): Promise<PcBuild[]> => {
         // Busca as montagens do usuário no Supabase
         const { data: montagens, error: montagensError } = await supabase
             .from('montagens')
-            .select('id, data_criacao')
+            .select('id, data_criacao, categoria')
             .eq('id_usuario', user.id)
             .order('data_criacao', { ascending: false });
 
@@ -291,7 +304,8 @@ export const getBuilds = async (): Promise<PcBuild[]> => {
             builds.push({
                 id: montagem.id,
                 components,
-                totalPrice
+                totalPrice,
+                category: montagem.categoria
             });
         }
 
